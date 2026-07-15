@@ -1,8 +1,11 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { verifyToken, AUTH_COOKIE_NAME } from "@/lib/jwt";
 import type { ApiResponse, SafeUser } from "@/types";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -45,7 +48,10 @@ export async function GET(req: NextRequest) {
       success: true,
       data: safeUser,
     });
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw err;
+    }
     console.error("Me endpoint error:", err);
     return NextResponse.json<ApiResponse<null>>(
       { success: false, message: "Something went wrong." },
