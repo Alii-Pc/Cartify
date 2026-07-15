@@ -5,14 +5,14 @@ import { Loader } from "@/components/ui/Loader";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Verify Email — Cartify",
+  title: "Verify Email \u2014 Cartify",
 };
 
 export default function VerifyEmailPage() {
   return (
     <AuthCard
-      title="Email verification"
-      subtitle="Confirming your email address."
+      title="Verify your email"
+      subtitle="Enter the 6-digit code we sent to your email."
     >
       <Suspense fallback={<Loader label="Loading..." />}>
         <VerifyEmailStatus />

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { signupSchema } from "@/lib/validations/auth";
 import { sendVerificationEmail } from "@/lib/mailer";
 import type { ApiResponse, SafeUser } from "@/types";
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,9 +30,6 @@ export async function POST(req: NextRequest) {
       "+verificationEmailSentAt"
     );
 
-    // Only block signup if an account with this email is already verified.
-    // An unverified account (e.g. abandoned signup, lost email) shouldn't
-    // stop someone from trying again — we just overwrite it below instead.
     if (existingUser && existingUser.isVerified) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, message: "An account with this email already exists" },
@@ -54,37 +54,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+    const otp = generateOtp();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     let user;
     if (existingUser) {
-      // Overwrite the abandoned unverified record with the new signup
-      // attempt (new name/password trigger the pre-save hash hook below).
       existingUser.name = name;
       existingUser.password = password;
-      existingUser.verificationToken = verificationToken;
-      existingUser.verificationTokenExpires = verificationTokenExpires;
+      existingUser.verificationOtp = otp;
+      existingUser.verificationOtpExpires = otpExpires;
       user = existingUser;
     } else {
       user = new User({
         name,
         email,
         password,
-        verificationToken,
-        verificationTokenExpires,
+        verificationOtp: otp,
+        verificationOtpExpires: otpExpires,
       });
     }
 
+    user.verificationEmailSentAt = new Date();
     await user.save();
 
     try {
-      await sendVerificationEmail(user.email, user.name, verificationToken);
-      user.verificationEmailSentAt = new Date();
-      await user.save();
+      await sendVerificationEmail(user.email, user.name, otp);
     } catch (mailErr) {
-      // Registration still succeeds even if the email fails to send —
-      // the user can request a resend later. We just log it server-side.
       console.error("Failed to send verification email:", mailErr);
     }
 
@@ -99,7 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json<ApiResponse<SafeUser>>(
       {
         success: true,
-        message: "Account created. Check your email to verify your account.",
+        message: "Account created. Check your email for the verification code.",
         data: safeUser,
       },
       { status: 201 }

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { resendVerificationSchema } from "@/lib/validations/auth";
 import { sendVerificationEmail } from "@/lib/mailer";
 import type { ApiResponse } from "@/types";
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const user = await User.findOne({ email }).select(
-      "+verificationToken +verificationTokenExpires +verificationEmailSentAt"
+      "+verificationOtp +verificationOtpExpires +verificationEmailSentAt"
     );
 
     if (!user) {
@@ -54,25 +57,36 @@ export async function POST(req: NextRequest) {
         return NextResponse.json<ApiResponse<null>>(
           {
             success: false,
-            message: `Please wait ${waitSeconds}s before requesting another verification email.`,
+            message: `Please wait ${waitSeconds}s before requesting another code.`,
           },
           { status: 429 }
         );
       }
     }
 
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    user.verificationToken = verificationToken;
-    user.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await sendVerificationEmail(user.email, user.name, verificationToken);
-
+    const otp = generateOtp();
+    user.verificationOtp = otp;
+    user.verificationOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
     user.verificationEmailSentAt = new Date();
     await user.save();
 
+    try {
+      await sendVerificationEmail(user.email, user.name, otp);
+    } catch (mailErr) {
+      console.error("Failed to send verification email:", mailErr);
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          success: false,
+          message:
+            "We couldn't send the verification code right now. Please try again in a minute.",
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json<ApiResponse<null>>({
       success: true,
-      message: "Verification email sent. Please check your inbox.",
+      message: "A new verification code has been sent to your email.",
       data: null,
     });
   } catch (err) {

@@ -6,8 +6,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   isVerified: boolean;
-  verificationToken?: string;
-  verificationTokenExpires?: Date;
+  verificationOtp?: string;
+  verificationOtpExpires?: Date;
   verificationEmailSentAt?: Date;
   resetPasswordToken?: string;
   resetPasswordTokenExpires?: Date;
@@ -38,17 +38,17 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, "Password is required"],
       minlength: 8,
-      select: false, // never return password by default
+      select: false,
     },
     isVerified: {
       type: Boolean,
       default: false,
     },
-    verificationToken: {
+    verificationOtp: {
       type: String,
       select: false,
     },
-    verificationTokenExpires: {
+    verificationOtpExpires: {
       type: Date,
       select: false,
     },
@@ -90,6 +90,5 @@ UserSchema.methods.comparePassword = async function (
   return bcrypt.compare(candidate, this.password);
 };
 
-// Prevent model overwrite errors in Next.js dev hot-reload
 export const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

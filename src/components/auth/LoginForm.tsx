@@ -48,10 +48,10 @@ export function LoginForm() {
       {needsVerification && (
         <p className="text-sm text-charcoal-700/70">
           <Link
-            href="/resend-verification"
+            href="/verify-email"
             className="font-medium text-olive-700 hover:underline"
           >
-            Resend verification email
+            Verify your email
           </Link>
         </p>
       )}

@@ -14,7 +14,6 @@ import { Alert } from "@/components/ui/Alert";
 export function SignupForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -26,7 +25,6 @@ export function SignupForm() {
 
   const onSubmit = async (data: SignupInput) => {
     setServerError(null);
-    setSuccessMessage(null);
 
     const result = await registerUser(data);
 
@@ -35,16 +33,14 @@ export function SignupForm() {
       return;
     }
 
-    setSuccessMessage(
-      result.message ?? "Account created. Check your email to verify."
-    );
-    setTimeout(() => router.push("/login"), 2000);
+    // Redirect to the OTP verification page with the email pre-filled
+    const email = encodeURIComponent(data.email);
+    router.push(`/verify-email?email=${email}`);
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       {serverError && <Alert type="error" message={serverError} />}
-      {successMessage && <Alert type="success" message={successMessage} />}
 
       <Input
         label="Full name"

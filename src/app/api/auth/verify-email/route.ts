@@ -1,39 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import { verifyOtpSchema } from "@/lib/validations/auth";
 import type { ApiResponse } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
-    const { token } = await req.json();
+    const body = await req.json();
+    const parsed = verifyOtpSchema.safeParse(body);
 
-    if (!token || typeof token !== "string") {
+    if (!parsed.success) {
+      const errors = parsed.error.flatten().fieldErrors;
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, message: "Verification token is missing" },
+        { success: false, message: "Validation failed", errors },
         { status: 400 }
       );
     }
 
+    const { email, otp } = parsed.data;
+
     await connectDB();
 
     const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: new Date() },
-    }).select("+verificationToken +verificationTokenExpires");
+      email,
+      verificationOtp: otp,
+      verificationOtpExpires: { $gt: new Date() },
+    }).select("+verificationOtp +verificationOtpExpires");
 
     if (!user) {
       return NextResponse.json<ApiResponse<null>>(
         {
           success: false,
-          message: "This verification link is invalid or has expired.",
+          message: "Invalid or expired verification code. Please request a new one.",
         },
         { status: 400 }
       );
     }
 
     user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
+    user.verificationOtp = undefined;
+    user.verificationOtpExpires = undefined;
     await user.save();
 
     return NextResponse.json<ApiResponse<null>>({

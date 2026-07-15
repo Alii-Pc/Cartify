@@ -2,7 +2,6 @@ import type { ApiResponse, SafeUser } from "@/types";
 import type {
   LoginInput,
   SignupInput,
-  ResendVerificationInput,
   ForgotPasswordInput,
   ResetPasswordInput,
 } from "@/lib/validations/auth";
@@ -43,24 +42,25 @@ export async function fetchCurrentUser(): Promise<ApiResponse<SafeUser>> {
   return parseResponse<SafeUser>(res);
 }
 
-export async function verifyEmailToken(
-  token: string
+export async function verifyEmailOtp(
+  email: string,
+  otp: string
 ): Promise<ApiResponse<null>> {
   const res = await fetch("/api/auth/verify-email", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ email, otp }),
   });
   return parseResponse<null>(res);
 }
 
-export async function resendVerificationEmail(
-  input: ResendVerificationInput
+export async function resendVerificationOtp(
+  email: string
 ): Promise<ApiResponse<null>> {
   const res = await fetch("/api/auth/resend-verification", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({ email }),
   });
   return parseResponse<null>(res);
 }
