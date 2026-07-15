@@ -1,88 +1,74 @@
+
 import nodemailer from "nodemailer";
 import type Mail from "nodemailer/lib/mailer";
 
 /* ---------------------------------------------------------------------------
- * Lazy transporter — created on first use so that:
- *   1. SMTP env vars are guaranteed to be loaded (not undefined at import).
- *   2. The connection stays fresh; we verify it before sending.
+ * Serverless / Vercel Compatible Mailer
+ * ---------------------------------------------------------------------------
+ * In serverless environments like Vercel (AWS Lambda), connection pooling
+ * (`pool: true`) and global socket caching cause timeouts and connection
+ * reset errors (`ETIMEDOUT`, `EPIPE`, `Socket timeout`) when containers
+ * freeze between HTTP requests.
+ *
+ * Using `pool: false` (the default) ensures each email opens a clean socket,
+ * sends the message, and sends `QUIT` right away before Vercel freezes the
+ * container.
  * -------------------------------------------------------------------------*/
-let _transporter: nodemailer.Transporter | null = null;
-let _transporterVerified = false;
 
-function getTransporter(): nodemailer.Transporter {
-  if (!_transporter) {
-    const host = process.env.SMTP_HOST;
-    const port = Number(process.env.SMTP_PORT || 587);
+function createServerlessTransporter(): nodemailer.Transporter {
+  const host = process.env.SMTP_HOST?.trim();
+  const portStr = process.env.SMTP_PORT?.trim() || "587";
+  const port = Number(portStr);
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
 
-    if (!host || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      throw new Error(
-        "SMTP configuration is incomplete. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in your .env.local file."
-      );
-    }
-
-    _transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      // Connection pool & timeouts to prevent hanging sends
-      pool: true,
-      maxConnections: 3,
-      connectionTimeout: 10_000, // 10 s
-      greetingTimeout: 10_000,
-      socketTimeout: 30_000, // 30 s
-    });
-
-    _transporterVerified = false;
+  if (!host || !user || !pass) {
+    throw new Error(
+      "SMTP configuration is incomplete on server. Ensure SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS are set in Vercel Environment Variables."
+    );
   }
 
-  return _transporter;
+  // Port 465 uses direct SSL/TLS (`secure: true`), while 587 uses STARTTLS (`secure: false`)
+  const isSecure = port === 465 || process.env.SMTP_SECURE === "true";
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: isSecure,
+    auth: {
+      user,
+      pass,
+    },
+    pool: false,
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
+    socketTimeout: 30_000,
+    tls: {
+      rejectUnauthorized: process.env.NODE_ENV === "production" ? true : false,
+    },
+  } as any);
 }
 
-/* ---------------------------------------------------------------------------
- * Robust send helper: verifies the SMTP connection on first use, and retries
- * once on transient failure (e.g. connection reset, temporary server error).
- * -------------------------------------------------------------------------*/
 const MAX_RETRIES = 1;
-const RETRY_DELAY_MS = 2_000;
+const RETRY_DELAY_MS = 1_500;
 
 async function sendMailReliably(mailOptions: Mail.Options): Promise<void> {
-  const transporter = getTransporter();
-
-  // Verify the SMTP connection once per transporter lifetime
-  if (!_transporterVerified) {
-    try {
-      await transporter.verify();
-      _transporterVerified = true;
-    } catch (verifyErr) {
-      console.error("SMTP connection verification failed:", verifyErr);
-      // Reset so the next attempt creates a fresh transporter
-      _transporter = null;
-      _transporterVerified = false;
-      throw new Error("Unable to connect to the email server. Please try again later.");
-    }
-  }
-
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
+      const transporter = createServerlessTransporter();
       await transporter.sendMail(mailOptions);
+      transporter.close(); // Explicitly close socket after sending
       return; // success
     } catch (err) {
       lastError = err;
       console.error(
-        `Email send attempt ${attempt + 1}/${MAX_RETRIES + 1} failed:`,
+        `[Mailer] Attempt ${attempt + 1}/${MAX_RETRIES + 1} failed for ${mailOptions.to}:`,
         err
       );
 
       if (attempt < MAX_RETRIES) {
-        // Reset transporter in case the connection went stale
-        _transporter = null;
-        _transporterVerified = false;
         await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
       }
     }
@@ -99,8 +85,10 @@ export async function sendVerificationEmail(
   name: string,
   otp: string
 ) {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+
   await sendMailReliably({
-    from: process.env.EMAIL_FROM,
+    from,
     to,
     subject: "Your Cartify verification code",
     html: `
@@ -131,10 +119,12 @@ export async function sendResetPasswordEmail(
   name: string,
   token: string
 ) {
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://cartify.vercel.app";
+  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
   await sendMailReliably({
-    from: process.env.EMAIL_FROM,
+    from,
     to,
     subject: "Reset your Cartify password",
     html: `
