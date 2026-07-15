@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+import { loginUser } from "@/lib/authClient";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
+
+export function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    setServerError(null);
+    setNeedsVerification(false);
+
+    const result = await loginUser(data);
+
+    if (!result.success) {
+      setServerError(result.message);
+      setNeedsVerification(result.message.toLowerCase().includes("verify"));
+      return;
+    }
+
+    const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+    router.push(redirectTo);
+    router.refresh();
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {serverError && <Alert type="error" message={serverError} />}
+      {needsVerification && (
+        <p className="text-sm text-charcoal-700/70">
+          <Link
+            href="/resend-verification"
+            className="font-medium text-olive-700 hover:underline"
+          >
+            Resend verification email
+          </Link>
+        </p>
+      )}
+
+      <Input
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        {...register("email")}
+        error={errors.email?.message}
+      />
+      <div>
+        <Input
+          label="Password"
+          type="password"
+          placeholder="Your password"
+          {...register("password")}
+          error={errors.password?.message}
+        />
+        <div className="mt-1.5 text-right">
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-olive-700 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+      </div>
+
+      <Button type="submit" isLoading={isSubmitting} className="w-full">
+        Log in
+      </Button>
+
+      <p className="text-center text-sm text-charcoal-700/70">
+        Don&apos;t have an account?{" "}
+        <Link href="/signup" className="font-medium text-olive-700 hover:underline">
+          Sign up
+        </Link>
+      </p>
+    </form>
+  );
+}
