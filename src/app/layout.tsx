@@ -20,6 +20,8 @@ export const metadata: Metadata = {
     "Cartify is a premium shopping experience — curated products, a calm matte-olive design, and a cart that never gets in your way.",
 };
 
+import { AppProviders } from "@/providers/AppProviders";
+
 export default function RootLayout({
   children,
 }: {
@@ -27,7 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="min-h-screen font-sans">{children}</body>
+      <body className="min-h-screen font-sans">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

@@ -37,9 +37,11 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-cream-50">Shop</h4>
           <ul className="mt-3 space-y-2 text-sm text-cream-100/60">
-            <li><Link href="/#categories" className="hover:text-cream-50">Categories</Link></li>
-            <li><Link href="/#deals" className="hover:text-cream-50">Deals</Link></li>
-            <li><Link href="/cart" className="hover:text-cream-50">Cart</Link></li>
+            <li><Link href="/products" className="hover:text-cream-50">All Products</Link></li>
+            <li><Link href="/categories" className="hover:text-cream-50">Categories</Link></li>
+            <li><Link href="/#deals" className="hover:text-cream-50">Featured Deals</Link></li>
+            <li><Link href="/cart" className="hover:text-cream-50">Shopping Cart</Link></li>
+            <li><Link href="/wishlist" className="hover:text-cream-50">Wishlist</Link></li>
           </ul>
         </div>
 
@@ -47,8 +49,9 @@ export function Footer() {
           <h4 className="text-sm font-semibold text-cream-50">Support</h4>
           <ul className="mt-3 space-y-2 text-sm text-cream-100/60">
             <li><Link href="/#about" className="hover:text-cream-50">About Cartify</Link></li>
-            <li><Link href="#" className="hover:text-cream-50">Shipping &amp; Returns</Link></li>
-            <li><Link href="#" className="hover:text-cream-50">Contact us</Link></li>
+            <li><Link href="/contact" className="hover:text-cream-50">Contact Us</Link></li>
+            <li><Link href="/contact#faq" className="hover:text-cream-50">FAQs &amp; Help</Link></li>
+            <li><Link href="/cart" className="hover:text-cream-50">Shipping &amp; Returns</Link></li>
           </ul>
         </div>
 
