@@ -16,6 +16,7 @@ const CategorySchema = new Schema<ICategory>(
       required: [true, "Category name is required"],
       trim: true,
       unique: true,
+      index: true,
     },
     slug: {
       type: String,
@@ -39,5 +40,18 @@ const CategorySchema = new Schema<ICategory>(
   { timestamps: true }
 );
 
+CategorySchema.pre("validate", function (next) {
+  if (this.name && !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+  next();
+});
+
 export const Category: Model<ICategory> =
   mongoose.models.Category || mongoose.model<ICategory>("Category", CategorySchema);
+

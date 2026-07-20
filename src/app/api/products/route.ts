@@ -1,9 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Product } from "@/models/Product";
 import { Category } from "@/models/Category";
-import { seedDatabaseIfEmpty } from "@/app/api/products/seed/route";
-import type { ApiResponse, PaginatedProductsResponse } from "@/types";
+import { seedDatabaseIfEmpty } from "@/lib/seed-data";
+import {
+  requireAdmin,
+  successResponse,
+  errorResponse,
+  validateRequest,
+  parsePaginationParams,
+  parseFilterParams,
+} from "@/lib/api-utils";
+import { createProductSchema } from "@/lib/validations/product";
+import type { PaginatedProductsResponse, SafeProduct } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,75 +23,9 @@ export async function GET(req: NextRequest) {
     // Auto-seed sample data if the products collection is totally empty
     await seedDatabaseIfEmpty();
 
-    const { searchParams } = new URL(req.url);
-    const q = searchParams.get("q")?.trim();
-    const category = searchParams.get("category")?.trim();
-    const minPrice = searchParams.get("minPrice")?.trim();
-    const maxPrice = searchParams.get("maxPrice")?.trim();
-    const tag = searchParams.get("tag")?.trim();
-    const inStock = searchParams.get("inStock") === "true";
-    const featured = searchParams.get("featured") === "true";
-    const sort = searchParams.get("sort") || "newest";
-    const page = Math.max(1, Number(searchParams.get("page")) || 1);
-    const limit = Math.max(1, Math.min(50, Number(searchParams.get("limit")) || 12));
-
-    const filter: Record<string, any> = {};
-
-    // Keyword Search
-    if (q) {
-      filter.$or = [
-        { name: { $regex: q, $options: "i" } },
-        { description: { $regex: q, $options: "i" } },
-      ];
-    }
-
-    // Category Filter (supports single slug or comma-separated slugs)
-    if (category && category !== "all") {
-      const slugs = category.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-      if (slugs.length > 0) {
-        filter.category = { $in: slugs };
-      }
-    }
-
-    // Price Range Filter
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice && !isNaN(Number(minPrice))) {
-        filter.price.$gte = Number(minPrice);
-      }
-      if (maxPrice && !isNaN(Number(maxPrice))) {
-        filter.price.$lte = Number(maxPrice);
-      }
-    }
-
-    // Tag Filter ('New' | 'Sale' | 'Bestseller')
-    if (tag && tag !== "all") {
-      filter.tag = tag;
-    }
-
-    // In-Stock Filter
-    if (inStock) {
-      filter.stock = { $gt: 0 };
-    }
-
-    // Featured Filter
-    if (featured) {
-      filter.featured = true;
-    }
-
-    // Sorting Options
-    let sortObj: Record<string, 1 | -1> = { createdAt: -1 };
-    if (sort === "price_asc") {
-      sortObj = { price: 1 };
-    } else if (sort === "price_desc") {
-      sortObj = { price: -1 };
-    } else if (sort === "rating") {
-      sortObj = { rating: -1, reviewCount: -1 };
-    } else if (sort === "newest") {
-      sortObj = { createdAt: -1 };
-    }
-
-    const skip = (page - 1) * limit;
+    const url = new URL(req.url);
+    const { page, limit, skip } = parsePaginationParams(url);
+    const { filter, sortObj } = parseFilterParams(url);
 
     const [products, total, categoriesDb] = await Promise.all([
       Product.find(filter).sort(sortObj).skip(skip).limit(limit).lean(),
@@ -107,7 +50,7 @@ export async function GET(req: NextRequest) {
       productCount: countMap.get(cat.slug) || 0,
     }));
 
-    const formattedProducts = products.map((p) => ({
+    const formattedProducts: SafeProduct[] = products.map((p) => ({
       _id: p._id.toString(),
       name: p.name,
       slug: p.slug,
@@ -135,18 +78,78 @@ export async function GET(req: NextRequest) {
       categories: categoriesWithCount,
     };
 
-    return NextResponse.json<ApiResponse<PaginatedProductsResponse>>({
-      success: true,
-      data: response,
-    });
+    return successResponse(response, "Products fetched successfully");
   } catch (err: any) {
     if (err?.digest === "DYNAMIC_SERVER_USAGE") {
       throw err;
     }
     console.error("GET /api/products error:", err);
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, message: "Failed to fetch products" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to fetch products", 500);
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.errorResponse) {
+      return authCheck.errorResponse;
+    }
+
+    const body = await req.json();
+    const validation = await validateRequest(createProductSchema, body);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    await connectDB();
+
+    // Verify category exists
+    const categoryExists = await Category.findOne({ slug: validation.data.category });
+    if (!categoryExists) {
+      return errorResponse(`Category '${validation.data.category}' does not exist. Please create it first.`, 400);
+    }
+
+    // Check duplicate name or slug if provided
+    const duplicateQuery: Record<string, any>[] = [{ name: validation.data.name }];
+    if (validation.data.slug) {
+      duplicateQuery.push({ slug: validation.data.slug });
+    }
+
+    const existing = await Product.findOne({ $or: duplicateQuery });
+    if (existing) {
+      return errorResponse("A product with this name or slug already exists", 409);
+    }
+
+    const product = await Product.create(validation.data);
+
+    const safeProduct: SafeProduct = {
+      _id: product._id.toString(),
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      category: product.category,
+      images: product.images,
+      rating: product.rating,
+      reviewCount: product.reviewCount,
+      stock: product.stock,
+      featured: product.featured,
+      tag: product.tag,
+      specifications: product.specifications,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    };
+
+    return successResponse(safeProduct, "Product created successfully", 201);
+  } catch (err: any) {
+    if (err?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw err;
+    }
+    console.error("POST /api/products error:", err);
+    if (err?.code === 11000) {
+      return errorResponse("A product with this name or slug already exists", 409);
+    }
+    return errorResponse(err.message || "Failed to create product", 500);
   }
 }

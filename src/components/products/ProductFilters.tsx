@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, SlidersHorizontal, RefreshCw } from "lucide-react";
+import { X, SlidersHorizontal, RefreshCw, Check } from "lucide-react";
 import type { SafeCategory } from "@/types";
 
 interface ProductFiltersProps {
@@ -31,7 +31,6 @@ const PRESET_PRICES = [
 ];
 
 const TAGS = [
-  { label: "All Items", value: "" },
   { label: "New Arrivals", value: "New" },
   { label: "On Sale", value: "Sale" },
   { label: "Bestsellers", value: "Bestseller" },
@@ -62,19 +61,42 @@ export function ProductFilters({
     onFilterChange({ minPrice: localMin, maxPrice: localMax });
   };
 
-  const handleCategoryClick = (slug: string) => {
-    if (selectedCategory === slug) {
-      onFilterChange({ category: "" });
+  // Helper arrays for multi-select categories and tags
+  const activeCategories = selectedCategory
+    ? selectedCategory.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
+    : [];
+
+  const activeTags = selectedTag
+    ? selectedTag.split(",").map((t) => t.trim()).filter(Boolean)
+    : [];
+
+  const handleCategoryCheckboxToggle = (slug: string) => {
+    const isSelected = activeCategories.includes(slug);
+    let updated: string[];
+    if (isSelected) {
+      updated = activeCategories.filter((item) => item !== slug);
     } else {
-      onFilterChange({ category: slug });
+      updated = [...activeCategories, slug];
     }
+    onFilterChange({ category: updated.join(",") });
+  };
+
+  const handleTagCheckboxToggle = (tagValue: string) => {
+    const isSelected = activeTags.includes(tagValue);
+    let updated: string[];
+    if (isSelected) {
+      updated = activeTags.filter((item) => item !== tagValue);
+    } else {
+      updated = [...activeTags, tagValue];
+    }
+    onFilterChange({ tag: updated.join(",") });
   };
 
   const hasActiveFilters =
-    Boolean(selectedCategory && selectedCategory !== "all") ||
+    activeCategories.length > 0 ||
     Boolean(minPrice) ||
     Boolean(maxPrice) ||
-    Boolean(selectedTag) ||
+    activeTags.length > 0 ||
     inStock;
 
   const content = (
@@ -96,50 +118,80 @@ export function ProductFilters({
         )}
       </div>
 
-      {/* Categories */}
+      {/* Categories (Multi-Select Checkboxes) */}
       <div>
-        <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-          Categories
-        </h4>
-        <div className="mt-3.5 flex flex-col gap-2">
-          <button
+        <div className="flex items-center justify-between">
+          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+            Categories
+          </h4>
+          {activeCategories.length > 0 && (
+            <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
+              {activeCategories.length} selected
+            </span>
+          )}
+        </div>
+        <div className="mt-3.5 flex flex-col gap-1.5">
+          {/* All Categories Option */}
+          <label
             onClick={() => onFilterChange({ category: "" })}
-            className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
-              !selectedCategory || selectedCategory === "all"
-                ? "bg-olive-800 text-cream-50 font-semibold shadow-xs"
-                : "bg-cream-100/50 text-charcoal-800 hover:bg-cream-100"
+            className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
+              activeCategories.length === 0
+                ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
             }`}
           >
-            <span>All Categories</span>
-          </button>
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat.slug;
-            return (
-              <button
-                key={cat._id}
-                onClick={() => handleCategoryClick(cat.slug)}
-                className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
-                  isSelected
-                    ? "bg-olive-800 text-cream-50 font-semibold shadow-xs"
-                    : "bg-cream-100/50 text-charcoal-800 hover:bg-cream-100"
+            <div className="flex items-center gap-2.5">
+              <div
+                className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                  activeCategories.length === 0
+                    ? "border-olive-800 bg-olive-800 text-cream-50"
+                    : "border-charcoal-400/40 bg-white"
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <span>{cat.emoji}</span>
-                  <span>{cat.name}</span>
+                {activeCategories.length === 0 && <Check className="h-3 w-3 stroke-[3]" />}
+              </div>
+              <span>All Categories</span>
+            </div>
+          </label>
+
+          {/* Individual Category Checkboxes */}
+          {categories.map((cat) => {
+            const isSelected = activeCategories.includes(cat.slug);
+            return (
+              <label
+                key={cat._id}
+                onClick={() => handleCategoryCheckboxToggle(cat.slug)}
+                className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
+                  isSelected
+                    ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                    : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+                      isSelected
+                        ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
+                        : "border-charcoal-400/40 bg-white hover:border-olive-600"
+                    }`}
+                  >
+                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                  </div>
+                  <span className="flex-shrink-0">{cat.emoji}</span>
+                  <span className="truncate">{cat.name}</span>
                 </div>
                 {cat.productCount !== undefined && (
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ml-2 flex-shrink-0 transition-colors ${
                       isSelected
-                        ? "bg-olive-700 text-cream-50"
-                        : "bg-olive-200/60 text-olive-800"
+                        ? "bg-olive-800 text-cream-50"
+                        : "bg-olive-200/50 text-olive-800"
                     }`}
                   >
                     {cat.productCount}
                   </span>
                 )}
-              </button>
+              </label>
             );
           })}
         </div>
@@ -163,7 +215,7 @@ export function ProductFilters({
                 }
                 className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors border ${
                   isActive
-                    ? "border-olive-800 bg-olive-800 text-cream-50 font-semibold"
+                    ? "border-olive-800 bg-olive-800 text-cream-50 font-semibold shadow-xs"
                     : "border-olive-200 bg-white/70 text-charcoal-800 hover:border-olive-400"
                 }`}
               >
@@ -184,7 +236,7 @@ export function ProductFilters({
               min="0"
               value={localMin}
               onChange={(e) => setLocalMin(e.target.value)}
-              className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none"
+              className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500"
             />
           </div>
           <span className="text-charcoal-700/40 font-medium">—</span>
@@ -198,52 +250,86 @@ export function ProductFilters({
               min="0"
               value={localMax}
               onChange={(e) => setLocalMax(e.target.value)}
-              className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none"
+              className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500"
             />
           </div>
           <button
             type="submit"
-            className="rounded-lg bg-olive-700 px-3 py-1.5 text-xs font-semibold text-cream-50 transition-colors hover:bg-olive-800"
+            className="rounded-lg bg-olive-700 px-3 py-1.5 text-xs font-semibold text-cream-50 transition-colors hover:bg-olive-800 shadow-xs"
           >
             Go
           </button>
         </form>
       </div>
 
-      {/* Special Tags */}
+      {/* Special Collection Tags (Multi-Select Checkboxes) */}
       <div className="border-t border-olive-100 pt-6">
-        <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-          Collection Tag
-        </h4>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex items-center justify-between">
+          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+            Collection Tag
+          </h4>
+          {activeTags.length > 0 && (
+            <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
+              {activeTags.length} selected
+            </span>
+          )}
+        </div>
+        <div className="mt-3 flex flex-col gap-1.5">
           {TAGS.map((t) => {
-            const isSelected = selectedTag === t.value;
+            const isSelected = activeTags.includes(t.value);
             return (
-              <button
-                key={t.label}
-                type="button"
-                onClick={() => onFilterChange({ tag: t.value })}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all border ${
+              <label
+                key={t.value}
+                onClick={() => handleTagCheckboxToggle(t.value)}
+                className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
                   isSelected
-                    ? "border-olive-800 bg-olive-800 text-cream-50 font-semibold"
-                    : "border-olive-200 bg-white/70 text-charcoal-800 hover:border-olive-400"
+                    ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                    : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
                 }`}
               >
-                {t.label}
-              </button>
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                      isSelected
+                        ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
+                        : "border-charcoal-400/40 bg-white hover:border-olive-600"
+                    }`}
+                  >
+                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                  </div>
+                  <span>{t.label}</span>
+                </div>
+              </label>
             );
           })}
         </div>
       </div>
 
-      {/* Availability / Stock */}
+      {/* Availability / Stock (Checkbox & Toggle) */}
       <div className="border-t border-olive-100 pt-6">
-        <label className="flex cursor-pointer items-center justify-between">
-          <span className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-            In Stock Only
-          </span>
+        <label
+          onClick={() => onFilterChange({ inStock: !inStock })}
+          className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all select-none ${
+            inStock
+              ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+              : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                inStock
+                  ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
+                  : "border-charcoal-400/40 bg-white hover:border-olive-600"
+              }`}
+            >
+              {inStock && <Check className="h-3 w-3 stroke-[3]" />}
+            </div>
+            <span className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+              In Stock Only
+            </span>
+          </div>
           <div
-            onClick={() => onFilterChange({ inStock: !inStock })}
             className={`flex h-6 w-11 items-center rounded-full p-1 transition-colors ${
               inStock ? "bg-olive-700" : "bg-charcoal-700/20"
             }`}

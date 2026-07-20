@@ -125,13 +125,13 @@ function ProductsCatalogContent() {
     router.push("/products", { scroll: false });
   };
 
-  const activeFilterCount = [
-    Boolean(categoryParam && categoryParam !== "all"),
-    Boolean(minPriceParam),
-    Boolean(maxPriceParam),
-    Boolean(tagParam),
-    inStockParam,
-  ].filter(Boolean).length;
+  const activeCategoriesCount = categoryParam && categoryParam !== "all" ? categoryParam.split(",").filter(Boolean).length : 0;
+  const activeTagsCount = tagParam ? tagParam.split(",").filter(Boolean).length : 0;
+  const activeFilterCount =
+    activeCategoriesCount +
+    activeTagsCount +
+    (minPriceParam || maxPriceParam ? 1 : 0) +
+    (inStockParam ? 1 : 0);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">

@@ -102,9 +102,25 @@ const ProductSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-// Create compound index for sorting & filtering
+// Create indexes for sorting, filtering, and text search
+ProductSchema.index({ name: "text", description: "text" });
 ProductSchema.index({ category: 1, price: 1 });
+ProductSchema.index({ featured: 1, createdAt: -1 });
+ProductSchema.index({ stock: 1, price: 1 });
 ProductSchema.index({ createdAt: -1 });
+
+ProductSchema.pre("validate", function (next) {
+  if (this.name && !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+  next();
+});
 
 export const Product: Model<IProduct> =
   mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);
+

@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Product } from "@/models/Product";
 import { Category } from "@/models/Category";
 import mongoose from "mongoose";
-import type { ApiResponse, SafeProduct, SafeCategory } from "@/types";
+import { requireAdmin, successResponse, errorResponse, validateRequest } from "@/lib/api-utils";
+import { updateProductSchema } from "@/lib/validations/product";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary";
+import type { SafeProduct, SafeCategory } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,18 +17,15 @@ export async function GET(
   try {
     await connectDB();
 
-    const identifier = params.slug;
-    let productDb = await Product.findOne({ slug: identifier.toLowerCase() }).lean();
+    const identifier = params.slug.toLowerCase();
+    let productDb = await Product.findOne({ slug: identifier }).lean();
 
-    if (!productDb && mongoose.isValidObjectId(identifier)) {
-      productDb = await Product.findById(identifier).lean();
+    if (!productDb && mongoose.isValidObjectId(params.slug)) {
+      productDb = await Product.findById(params.slug).lean();
     }
 
     if (!productDb) {
-      return NextResponse.json<ApiResponse<null>>(
-        { success: false, message: "Product not found" },
-        { status: 404 }
-      );
+      return errorResponse("Product not found", 404);
     }
 
     const [relatedProductsDb, categoryDb] = await Promise.all([
@@ -86,24 +86,165 @@ export async function GET(
         }
       : undefined;
 
-    return NextResponse.json<
-      ApiResponse<{ product: SafeProduct; relatedProducts: SafeProduct[]; category?: SafeCategory }>
-    >({
-      success: true,
-      data: {
+    return successResponse(
+      {
         product: formattedProduct,
         relatedProducts: formattedRelated,
         category: formattedCategory,
       },
-    });
+      "Product details fetched successfully"
+    );
   } catch (err: any) {
     if (err?.digest === "DYNAMIC_SERVER_USAGE") {
       throw err;
     }
     console.error("GET /api/products/[slug] error:", err);
-    return NextResponse.json<ApiResponse<null>>(
-      { success: false, message: "Failed to fetch product details" },
-      { status: 500 }
+    return errorResponse("Failed to fetch product details", 500);
+  }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.errorResponse) {
+      return authCheck.errorResponse;
+    }
+
+    const body = await req.json();
+    const validation = await validateRequest(updateProductSchema, body);
+    if (!validation.success) {
+      return validation.response;
+    }
+
+    await connectDB();
+    const identifier = params.slug.toLowerCase();
+
+    let query: Record<string, any> = { slug: identifier };
+    if (mongoose.isValidObjectId(params.slug)) {
+      query = { $or: [{ slug: identifier }, { _id: params.slug }] };
+    }
+
+    const product = await Product.findOne(query);
+    if (!product) {
+      return errorResponse("Product not found", 404);
+    }
+
+    // Verify new category exists if changed
+    if (validation.data.category && validation.data.category !== product.category) {
+      const categoryExists = await Category.findOne({ slug: validation.data.category });
+      if (!categoryExists) {
+        return errorResponse(`Category '${validation.data.category}' does not exist`, 400);
+      }
+    }
+
+    // Check duplicates if name or slug changed
+    if (validation.data.name || validation.data.slug) {
+      const duplicateQuery: Record<string, any>[] = [];
+      if (validation.data.name && validation.data.name !== product.name) {
+        duplicateQuery.push({ name: validation.data.name });
+      }
+      if (validation.data.slug && validation.data.slug !== product.slug) {
+        duplicateQuery.push({ slug: validation.data.slug });
+      }
+      if (duplicateQuery.length > 0) {
+        const existing = await Product.findOne({
+          $or: duplicateQuery,
+          _id: { $ne: product._id },
+        });
+        if (existing) {
+          return errorResponse("A product with this name or slug already exists", 409);
+        }
+      }
+    }
+
+    Object.assign(product, validation.data);
+    await product.save();
+
+    const safeProduct: SafeProduct = {
+      _id: product._id.toString(),
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      category: product.category,
+      images: product.images,
+      rating: product.rating,
+      reviewCount: product.reviewCount,
+      stock: product.stock,
+      featured: product.featured,
+      tag: product.tag,
+      specifications: product.specifications,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    };
+
+    return successResponse(safeProduct, "Product updated successfully");
+  } catch (err: any) {
+    if (err?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw err;
+    }
+    console.error("PUT /api/products/[slug] error:", err);
+    if (err?.code === 11000) {
+      return errorResponse("A product with this name or slug already exists", 409);
+    }
+    return errorResponse("Failed to update product", 500);
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.errorResponse) {
+      return authCheck.errorResponse;
+    }
+
+    await connectDB();
+    const identifier = params.slug.toLowerCase();
+
+    let product = await Product.findOne({ slug: identifier });
+    if (!product && mongoose.isValidObjectId(params.slug)) {
+      product = await Product.findById(params.slug);
+    }
+
+    if (!product) {
+      return errorResponse("Product not found", 404);
+    }
+
+    // Optionally attempt cleanup of images hosted on Cloudinary if URLs contain /cartify/
+    try {
+      if (product.images && Array.isArray(product.images)) {
+        for (const imgUrl of product.images) {
+          if (imgUrl.includes("cloudinary.com") && imgUrl.includes("cartify/")) {
+            // Extract public_id from Cloudinary URL (e.g. .../v12345/cartify/products/xyz.jpg -> cartify/products/xyz)
+            const match = imgUrl.match(/(cartify\/[^.]+)/);
+            if (match && match[1]) {
+              await deleteImageFromCloudinary(match[1]);
+            }
+          }
+        }
+      }
+    } catch (cleanupErr) {
+      console.warn("Image cleanup error during product deletion:", cleanupErr);
+    }
+
+    await product.deleteOne();
+
+    return successResponse(
+      { deleted: true, slug: product.slug, id: product._id },
+      "Product deleted successfully"
     );
+  } catch (err: any) {
+    if (err?.digest === "DYNAMIC_SERVER_USAGE") {
+      throw err;
+    }
+    console.error("DELETE /api/products/[slug] error:", err);
+    return errorResponse("Failed to delete product", 500);
   }
 }
