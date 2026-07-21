@@ -134,7 +134,7 @@ function ProductsCatalogContent() {
     (inStockParam ? 1 : 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       {/* Header Banner */}
       <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
@@ -170,7 +170,7 @@ function ProductsCatalogContent() {
       </div>
 
       {/* Main Layout (Sidebar + Grid) */}
-      <div className="flex items-start gap-8">
+      <div className="flex items-start gap-6 lg:gap-8">
         {/* Filters Sidebar & Mobile Drawer */}
         <ProductFilters
           categories={categories}
@@ -225,7 +225,7 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
           <ProductSkeleton count={8} />
         </div>
       }

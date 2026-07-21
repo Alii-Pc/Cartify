@@ -92,3 +92,68 @@ export interface ProductFiltersState {
   sort: "newest" | "price_asc" | "price_desc" | "rating";
   page: number;
 }
+
+// ── Cart Types ──
+export interface CartItemData {
+  productId: string;
+  quantity: number;
+  product?: SafeProduct | undefined;
+}
+
+export interface SafeCart {
+  _id: string;
+  userId: string;
+  items: CartItemData[];
+  updatedAt: string;
+}
+
+// ── Address Types ──
+export interface ShippingAddress {
+  fullName: string;
+  email: string;
+  addressLine1: string;
+  addressLine2?: string | undefined;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone: string;
+}
+
+// ── Order Types ──
+export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  slug: string;
+  image: string;
+  price: number;
+  quantity: number;
+}
+
+export interface SafeOrder {
+  _id: string;
+  orderNumber: string;
+  userId: string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  discount: number;
+  total: number;
+  status: OrderStatus;
+  promoCode?: string | undefined;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserAddress extends ShippingAddress {
+  _id: string;
+  userId: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+

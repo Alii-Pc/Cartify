@@ -62,7 +62,7 @@ export default function CartPage() {
 
   if (orderSuccess) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-20 text-center animate-fadeIn">
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
         <div className="card-surface p-12 sm:p-16 flex flex-col items-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-sm">
             <CheckCircle2 className="h-10 w-10" />
@@ -96,7 +96,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-charcoal-900 sm:text-4xl">
@@ -140,7 +140,7 @@ export default function CartPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 lg:items-start">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:items-start xl:gap-12">
           {/* Left Column: Line Items */}
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => {
@@ -322,21 +322,12 @@ export default function CartPage() {
               </dl>
 
               {/* Checkout Button */}
-              <button
-                type="button"
-                disabled={isCheckingOut || cartItems.length === 0}
-                onClick={handleSimulatedCheckout}
-                className="w-full rounded-full bg-olive-800 py-4 text-center font-display text-base font-bold text-cream-50 shadow-md transition-all hover:bg-olive-900 active:scale-98 disabled:opacity-50"
+              <Link
+                href="/checkout"
+                className="block w-full rounded-full bg-olive-800 py-4 text-center font-display text-base font-bold text-cream-50 shadow-md transition-all hover:bg-olive-900 hover:scale-[1.02] active:scale-98 hover:no-underline"
               >
-                {isCheckingOut ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream-50 border-t-transparent" />
-                    <span>Processing Payment...</span>
-                  </span>
-                ) : (
-                  <span>Proceed to Checkout</span>
-                )}
-              </button>
+                Proceed to Checkout
+              </Link>
             </div>
 
             {/* Value Props */}

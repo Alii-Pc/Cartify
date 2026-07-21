@@ -100,7 +100,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-olive-grain px-6 pb-28 pt-20 lg:px-8 lg:pt-28">
+    <section className="relative overflow-hidden bg-olive-grain px-4 pb-20 pt-16 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8 lg:pt-28">
       {/* Background ambient glow */}
       <div className="pointer-events-none absolute left-1/2 top-1/3 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-olive-200/40 via-amber-100/30 to-cream-200/50 blur-3xl" />
 
@@ -111,7 +111,7 @@ export function Hero() {
           <span>New Season &bull; Handcrafted Curations</span>
         </div>
 
-        <h1 className="font-display text-4xl font-bold leading-tight text-charcoal-900 sm:text-5xl lg:text-6xl tracking-tight">
+        <h1 className="font-display text-3xl font-bold leading-tight text-charcoal-900 sm:text-4xl md:text-5xl lg:text-6xl tracking-tight">
           Shopping that feels{" "}
           <span className="bg-gradient-to-r from-olive-800 via-olive-600 to-amber-700 bg-clip-text text-transparent">
             unhurried &amp; refined
@@ -142,7 +142,7 @@ export function Hero() {
       </div>
 
       {/* Interactive Featured Collection Preview Showcase Suite */}
-      <div className="mx-auto mt-20 max-w-6xl">
+      <div className="mx-auto mt-14 max-w-6xl sm:mt-20">
         <div className="card-surface overflow-hidden rounded-3xl border border-olive-200/80 bg-white/75 shadow-2xl backdrop-blur-xl">
           {/* Top Glass Showcase Header Bar */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-olive-100 bg-cream-50/90 px-6 py-4 lg:px-8">
@@ -157,7 +157,7 @@ export function Hero() {
             </div>
 
             {/* Tab Switchers */}
-            <div className="flex items-center gap-1.5 rounded-full bg-olive-100/70 p-1 border border-olive-200/60 w-full sm:w-auto overflow-x-auto">
+            <div className="flex items-center gap-1 rounded-full bg-olive-100/70 p-1 border border-olive-200/60 overflow-x-auto">
               {HERO_SHOWCASE_ITEMS.map((item, idx) => (
                 <button
                   key={item._id}

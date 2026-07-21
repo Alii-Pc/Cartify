@@ -3,11 +3,14 @@
 import React from "react";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ToastProvider } from "@/components/ui/Toast";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <CartProvider>
-      <WishlistProvider>{children}</WishlistProvider>
+      <WishlistProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </WishlistProvider>
     </CartProvider>
   );
 }
