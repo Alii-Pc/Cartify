@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import { Cart } from "@/models/Cart";
 import { Product } from "@/models/Product";
@@ -114,6 +115,10 @@ export async function POST(req: NextRequest) {
     const quantity: number = validation.data.quantity ?? 1;
 
     await connectDB();
+
+    if (!mongoose.isValidObjectId(productId)) {
+      return errorResponse("Invalid product ID specified", 400);
+    }
 
     // Verify product exists and has sufficient stock
     const product = await Product.findById(productId).lean();

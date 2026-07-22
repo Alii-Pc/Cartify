@@ -12,9 +12,15 @@ export const shippingAddressSchema = z.object({
   phone: z.string().trim().min(7, "Phone must be at least 7 characters"),
 });
 
+export const orderItemInputSchema = z.object({
+  productId: z.string().min(1, "Product ID is required"),
+  quantity: z.number().int().min(1, "Quantity must be at least 1"),
+});
+
 export const createOrderSchema = z.object({
   shippingAddress: shippingAddressSchema,
   promoCode: z.string().trim().optional(),
+  items: z.array(orderItemInputSchema).optional(),
 });
 
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>;

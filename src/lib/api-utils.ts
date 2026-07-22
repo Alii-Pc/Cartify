@@ -58,9 +58,12 @@ export async function validateRequest<T>(
       }
       formattedErrors[path].push(issue.message);
     }
+    const messages = result.error.issues.map((i) => i.message);
+    const primaryMessage = messages.length > 0 ? messages.join(". ") : "Invalid input data provided.";
+
     return {
       success: false,
-      response: errorResponse("Validation error", 400, formattedErrors),
+      response: errorResponse(primaryMessage, 400, formattedErrors),
     };
   }
   return { success: true, data: result.data };

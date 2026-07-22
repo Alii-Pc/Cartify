@@ -10,10 +10,12 @@ import { loginUser } from "@/lib/authClient";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { useAuth } from "@/context/AuthContext";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshUser } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
 
@@ -37,6 +39,7 @@ export function LoginForm() {
       return;
     }
 
+    await refreshUser();
     const redirectTo = searchParams.get("redirectTo") || "/dashboard";
     router.push(redirectTo);
     router.refresh();

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import mongoose from "mongoose";
 import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Wishlist } from "@/models/Wishlist";
@@ -94,6 +95,10 @@ export async function POST(req: NextRequest) {
     const { productId } = validation.data;
 
     await connectDB();
+
+    if (!mongoose.isValidObjectId(productId)) {
+      return errorResponse("Invalid product ID specified", 400);
+    }
 
     // Verify the product exists
     const product = await Product.findById(productId).lean();

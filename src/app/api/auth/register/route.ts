@@ -16,8 +16,9 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       const errors = parsed.error.flatten().fieldErrors;
+      const primaryMessage = parsed.error.issues.map((i) => i.message).join(". ") || "Please fill in all required fields correctly.";
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, message: "Validation failed", errors },
+        { success: false, message: primaryMessage, errors },
         { status: 400 }
       );
     }

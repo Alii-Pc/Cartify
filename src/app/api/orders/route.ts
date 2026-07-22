@@ -13,6 +13,7 @@ import {
 import { createOrderSchema } from "@/lib/validations/order";
 import type { SafeOrder } from "@/types";
 import { sendOrderEmails } from "@/lib/mailer";
+import { calculateOrderTotals } from "@/lib/checkout-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -111,21 +112,34 @@ export async function POST(req: NextRequest) {
       return validation.response;
     }
 
-    const { shippingAddress, promoCode } = validation.data;
+    const { shippingAddress, promoCode, items: bodyItems } = validation.data;
 
     await connectDB();
 
-    // Fetch user's cart
-    const cart = await Cart.findOne({ userId: user._id });
-    if (!cart || cart.items.length === 0) {
-      return errorResponse("Your cart is empty", 400);
+    // Determine cart items from request payload or MongoDB Cart
+    let rawItems: Array<{ productId: string; quantity: number }> = [];
+
+    if (bodyItems && bodyItems.length > 0) {
+      rawItems = bodyItems;
+    } else {
+      const cart = await Cart.findOne({ userId: user._id });
+      if (cart && cart.items.length > 0) {
+        rawItems = cart.items.map((i: any) => ({
+          productId: i.productId.toString(),
+          quantity: i.quantity,
+        }));
+      }
+    }
+
+    if (rawItems.length === 0) {
+      return errorResponse("Your cart is empty. Please add items to your cart before placing an order.", 400);
     }
 
     // Process order items and validate stock
     const orderItems = [];
     let subtotal = 0;
 
-    for (const item of cart.items) {
+    for (const item of rawItems) {
       const product = await Product.findById(item.productId);
       if (!product) {
         return errorResponse(`Product with ID ${item.productId} no longer exists`, 404);
@@ -151,26 +165,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Calculate Promo Discount
-    let discount = 0;
-    const cleanPromo = promoCode?.trim().toUpperCase();
-    if (cleanPromo === "WELCOME10") {
-      discount = subtotal * 0.1;
-    } else if (cleanPromo === "CARTIFY20") {
-      if (subtotal >= 50) {
-        discount = 20;
-      }
-    }
-
-    // Shipping logic (free over $50)
-    const shipping = subtotal >= 50 ? 0 : 5.0;
-
-    // Tax logic (8% of taxable amount)
-    const taxableAmount = Math.max(0, subtotal - discount);
-    const tax = taxableAmount * 0.08;
-
-    // Grand total
-    const total = Math.max(0, taxableAmount + shipping + tax);
+    // Calculate order financial metrics using central engine
+    const totals = calculateOrderTotals(subtotal, promoCode);
+    const { discount, shipping, tax, total } = totals;
 
     // Create Order document
     const newOrder = new Order({
@@ -183,7 +180,7 @@ export async function POST(req: NextRequest) {
       discount,
       total,
       status: "confirmed", // Set order as confirmed directly
-      promoCode: cleanPromo || undefined,
+      promoCode: promoCode?.trim().toUpperCase() || undefined,
     });
 
     await newOrder.save();
@@ -195,9 +192,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Clear user's cart
-    cart.items = [];
-    await cart.save();
+    // Clear user's cart in database
+    await Cart.findOneAndUpdate({ userId: user._id }, { $set: { items: [] } });
 
     const formattedOrder = formatOrder(newOrder);
 

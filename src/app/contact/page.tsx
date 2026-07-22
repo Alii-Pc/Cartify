@@ -37,12 +37,23 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setFieldErrors({});
+
+    // Client-side quick check
+    if (formData.message.trim().length < 10) {
+      const msgError = "Message must be at least 10 characters long.";
+      setError(msgError);
+      setFieldErrors({ message: [msgError] });
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/contact", {
@@ -60,11 +71,15 @@ export default function ContactPage() {
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        setError(json.message || "Failed to send message. Please try again.");
+        setError(json.message || "Failed to send message. Please check your input.");
+        if (json.errors) {
+          setFieldErrors(json.errors);
+        }
         return;
       }
 
       setSubmitted(true);
+      setFieldErrors({});
       setFormData({
         name: "",
         email: "",
@@ -186,6 +201,9 @@ export default function ContactPage() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="mt-1.5 w-full rounded-xl border border-olive-200 bg-white px-4 py-3 text-sm text-charcoal-900 placeholder:text-charcoal-700/40 focus:border-olive-600 focus:outline-none focus:ring-2 focus:ring-olive-200 transition-colors"
                   />
+                  {fieldErrors.name && (
+                    <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.name[0]}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal-800">
@@ -199,6 +217,9 @@ export default function ContactPage() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="mt-1.5 w-full rounded-xl border border-olive-200 bg-white px-4 py-3 text-sm text-charcoal-900 placeholder:text-charcoal-700/40 focus:border-olive-600 focus:outline-none focus:ring-2 focus:ring-olive-200 transition-colors"
                   />
+                  {fieldErrors.email && (
+                    <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.email[0]}</p>
+                  )}
                 </div>
               </div>
 
@@ -214,6 +235,9 @@ export default function ContactPage() {
                     onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
                     className="mt-1.5 w-full rounded-xl border border-olive-200 bg-white px-4 py-3 text-sm text-charcoal-900 placeholder:text-charcoal-700/40 focus:border-olive-600 focus:outline-none focus:ring-2 focus:ring-olive-200 transition-colors"
                   />
+                  {fieldErrors.orderNumber && (
+                    <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.orderNumber[0]}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal-800">
@@ -229,6 +253,9 @@ export default function ContactPage() {
                     <option value="Returns & Exchanges">Returns &amp; Exchanges</option>
                     <option value="Product Feedback">Product Feedback</option>
                   </select>
+                  {fieldErrors.subject && (
+                    <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.subject[0]}</p>
+                  )}
                 </div>
               </div>
 
@@ -239,11 +266,14 @@ export default function ContactPage() {
                 <textarea
                   required
                   rows={5}
-                  placeholder="Tell us how we can help..."
+                  placeholder="Tell us how we can help (minimum 10 characters)..."
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="mt-1.5 w-full rounded-xl border border-olive-200 bg-white p-4 text-sm text-charcoal-900 placeholder:text-charcoal-700/40 focus:border-olive-600 focus:outline-none focus:ring-2 focus:ring-olive-200 transition-colors resize-none"
                 />
+                {fieldErrors.message && (
+                  <p className="mt-1 text-xs text-red-600 font-medium">{fieldErrors.message[0]}</p>
+                )}
               </div>
 
               <button

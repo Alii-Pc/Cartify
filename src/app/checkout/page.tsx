@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/components/ui/Toast";
+import { Loader } from "@/components/ui/Loader";
 import {
   MapPin,
   Plus,
@@ -17,9 +18,10 @@ import {
   AlertCircle,
   Tag,
 } from "lucide-react";
+import { calculateOrderTotals } from "@/lib/checkout-utils";
 import type { UserAddress } from "@/types";
 
-export default function CheckoutPage() {
+function CheckoutForm() {
   const router = useRouter();
   const { cartItems, subtotal, itemCount, clearCart, isLoading: isCartLoading } = useCart();
   const { addToast } = useToast();
@@ -48,9 +50,10 @@ export default function CheckoutPage() {
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
   // Promo Code States
-  const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
-  const [discount, setDiscount] = useState(0);
+  const searchParams = useSearchParams();
+  const initialPromo = searchParams.get("promo");
+  const [promoCode, setPromoCode] = useState(initialPromo || "");
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(initialPromo || null);
   const [promoError, setPromoError] = useState("");
 
   // Place Order States
@@ -226,33 +229,40 @@ export default function CheckoutPage() {
   };
 
   // ── Handle Apply Coupon Code ──
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     setPromoError("");
     const code = promoCode.trim().toUpperCase();
 
-    if (code === "WELCOME10") {
-      setDiscount(subtotal * 0.1);
-      setAppliedPromo(code);
-      addToast("success", "WELCOME10 coupon applied! 10% off");
-    } else if (code === "CARTIFY20") {
-      if (subtotal < 50) {
-        setPromoError("Order subtotal must be at least $50 for CARTIFY20");
-        return;
+    if (!code) {
+      setPromoError("Please enter a promo code");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode: code, subtotal }),
+      });
+
+      const json = await res.json();
+
+      if (res.ok && json.success) {
+        setAppliedPromo(code);
+        addToast("success", json.message || `Coupon '${code}' applied!`);
+      } else {
+        setPromoError(json.message || "Invalid or expired promo code.");
+        addToast("error", json.message || "Invalid promo code");
       }
-      setDiscount(20);
-      setAppliedPromo(code);
-      addToast("success", "CARTIFY20 coupon applied! $20.00 off");
-    } else {
-      setPromoError("Invalid promo code. Try WELCOME10");
+    } catch {
+      setPromoError("Error validating promo code.");
     }
   };
 
   // ── Calculate Cost Breakdown ──
-  const shipping = subtotal >= 50 ? 0 : 5.0;
-  const taxableAmount = Math.max(0, subtotal - discount);
-  const tax = taxableAmount * 0.08;
-  const grandTotal = Math.max(0, taxableAmount + shipping + tax);
+  const totals = calculateOrderTotals(subtotal, appliedPromo);
+  const { discount, shipping, tax, total: grandTotal } = totals;
 
   // ── Place Order Action ──
   const handlePlaceOrder = async () => {
@@ -287,6 +297,10 @@ export default function CheckoutPage() {
             phone: selectedAddrObj.phone,
           },
           promoCode: appliedPromo || undefined,
+          items: cartItems.map((item) => ({
+            productId: item.product._id,
+            quantity: item.quantity,
+          })),
         }),
       });
 
@@ -790,5 +804,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<Loader label="Loading checkout..." />}>
+      <CheckoutForm />
+    </Suspense>
   );
 }

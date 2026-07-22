@@ -6,6 +6,7 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ShoppingCart, Star, Check, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useToast } from "@/components/ui/Toast";
 import type { SafeProduct } from "@/types";
 
 interface ProductCardProps {
@@ -18,6 +19,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { addToast } = useToast();
 
   const inWishlist = isInWishlist(product._id);
 
@@ -29,9 +31,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.stock <= 0) return;
+    if (product.stock <= 0) {
+      addToast("warning", `"${product.name}" is currently out of stock.`);
+      return;
+    }
     setAdded(true);
     addToCart(product, 1);
+    addToast("success", `Added "${product.name}" to cart!`);
+
     if (onAddToCart) {
       onAddToCart(product);
     }
@@ -41,7 +48,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist(product);
+    
+    if (inWishlist) {
+      toggleWishlist(product);
+      addToast("info", `Removed "${product.name}" from wishlist.`);
+    } else {
+      toggleWishlist(product);
+      addToast("success", `Saved "${product.name}" to wishlist!`);
+    }
   };
 
   const getBadgeTone = (tag?: string | null): BadgeTone => {

@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useToast } from "@/components/ui/Toast";
+import { calculateOrderTotals } from "@/lib/checkout-utils";
 import {
   Trash2,
   Minus,
@@ -19,81 +21,49 @@ import {
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, clearCart, subtotal, itemCount } =
     useCart();
+  const { addToast } = useToast();
   const [promoCode, setPromoCode] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const [promoApplied, setPromoApplied] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoError, setPromoError] = useState("");
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const totals = calculateOrderTotals(subtotal, appliedPromo);
+  const { discount, shipping, tax, total: grandTotal, appliedCoupon } = totals;
+
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     setPromoError("");
     const code = promoCode.trim().toUpperCase();
 
-    if (code === "WELCOME10") {
-      setDiscount(subtotal * 0.1);
-      setPromoApplied(true);
-    } else if (code === "CARTIFY20") {
-      if (subtotal < 50) {
-        setPromoError("Order must be at least $50 for CARTIFY20 coupon.");
-        return;
+    if (!code) {
+      setPromoError("Please enter a promo code");
+      return;
+    }
+
+    setIsValidatingPromo(true);
+
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode: code, subtotal }),
+      });
+
+      const json = await res.json();
+
+      if (res.ok && json.success) {
+        setAppliedPromo(code);
+        addToast("success", json.message || `Coupon '${code}' applied!`);
+      } else {
+        setPromoError(json.message || "Invalid or expired promo code.");
+        addToast("error", json.message || "Invalid promo code");
       }
-      setDiscount(20);
-      setPromoApplied(true);
-    } else {
-      setPromoError("Invalid or expired promo code. Try WELCOME10");
+    } catch {
+      setPromoError("Error validating promo code. Please try again.");
+    } finally {
+      setIsValidatingPromo(false);
     }
   };
-
-  const shipping = subtotal >= 50 || subtotal === 0 ? 0 : 5.0;
-  const taxableAmount = Math.max(0, subtotal - discount);
-  const tax = taxableAmount * 0.08;
-  const grandTotal = Math.max(0, taxableAmount + shipping + tax);
-
-  const handleSimulatedCheckout = () => {
-    setIsCheckingOut(true);
-    setTimeout(() => {
-      setIsCheckingOut(false);
-      setOrderSuccess(true);
-      clearCart();
-    }, 1500);
-  };
-
-  if (orderSuccess) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
-        <div className="card-surface p-12 sm:p-16 flex flex-col items-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-sm">
-            <CheckCircle2 className="h-10 w-10" />
-          </div>
-          <h1 className="mt-6 font-display text-3xl font-bold text-charcoal-900 sm:text-4xl">
-            Order Confirmed!
-          </h1>
-          <p className="mt-3 max-w-md text-sm text-charcoal-700/80 leading-relaxed">
-            Thank you for shopping with Cartify. We have received your order and are getting it ready for shipment right now.
-          </p>
-          <div className="mt-8 rounded-2xl bg-cream-100/80 border border-olive-100 p-6 w-full max-w-sm text-left text-xs space-y-2">
-            <div className="flex justify-between font-semibold text-charcoal-900">
-              <span>Order Number:</span>
-              <span>#CFY-{Math.floor(100000 + Math.random() * 900000)}</span>
-            </div>
-            <div className="flex justify-between text-charcoal-700/75">
-              <span>Estimated Delivery:</span>
-              <span>3 - 5 Business Days</span>
-            </div>
-          </div>
-          <Link
-            href="/products"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-olive-800 px-8 py-3.5 text-sm font-semibold text-cream-50 transition-all hover:bg-olive-900 shadow-sm"
-          >
-            <span>Continue Shopping</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -260,7 +230,7 @@ export default function CartPage() {
                     <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-charcoal-700/40" />
                     <input
                       type="text"
-                      placeholder="WELCOME10"
+                      placeholder="WELCOME10, CARTIFY20"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
                       className="w-full rounded-full border border-olive-200 bg-white py-2 pl-9 pr-3 text-xs uppercase tracking-wider text-charcoal-900 placeholder:text-charcoal-700/40 focus:border-olive-600 focus:outline-none focus:ring-2 focus:ring-olive-200"
@@ -268,15 +238,26 @@ export default function CartPage() {
                   </div>
                   <button
                     type="submit"
-                    className="rounded-full bg-charcoal-800 px-4 py-2 text-xs font-semibold text-cream-50 transition-colors hover:bg-charcoal-900"
+                    disabled={isValidatingPromo}
+                    className="rounded-full bg-charcoal-800 px-4 py-2 text-xs font-semibold text-cream-50 transition-colors hover:bg-charcoal-900 disabled:opacity-50"
                   >
-                    Apply
+                    {isValidatingPromo ? "..." : "Apply"}
                   </button>
                 </div>
-                {promoApplied && (
-                  <p className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Promo applied successfully!
-                  </p>
+                {appliedCoupon && (
+                  <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800 font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <span>{appliedCoupon.code} applied ({appliedCoupon.description})</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAppliedPromo(null)}
+                      className="text-emerald-700 hover:text-emerald-900 text-[10px] font-bold uppercase underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
                 {promoError && (
                   <p className="text-xs font-medium text-red-600">{promoError}</p>
@@ -292,7 +273,7 @@ export default function CartPage() {
 
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-medium">
-                    <dt>Discount</dt>
+                    <dt>Discount ({appliedCoupon?.code})</dt>
                     <dd>-${discount.toFixed(2)}</dd>
                   </div>
                 )}
@@ -323,7 +304,7 @@ export default function CartPage() {
 
               {/* Checkout Button */}
               <Link
-                href="/checkout"
+                href={appliedPromo ? `/checkout?promo=${appliedPromo}` : "/checkout"}
                 className="block w-full rounded-full bg-olive-800 py-4 text-center font-display text-base font-bold text-cream-50 shadow-md transition-all hover:bg-olive-900 hover:scale-[1.02] active:scale-98 hover:no-underline"
               >
                 Proceed to Checkout

@@ -18,9 +18,10 @@ export async function POST(req: NextRequest) {
     const result = contactSchema.safeParse(body);
 
     if (!result.success) {
-      const errors = result.error.flatten().fieldErrors;
+      const fieldErrors = result.error.flatten().fieldErrors;
+      const primaryMessage = result.error.issues.map((i) => i.message).join(". ") || "Invalid contact form input.";
       return NextResponse.json(
-        { success: false, message: "Validation failed", errors },
+        { success: false, message: primaryMessage, errors: fieldErrors },
         { status: 400 }
       );
     }

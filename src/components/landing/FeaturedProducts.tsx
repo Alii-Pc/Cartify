@@ -10,7 +10,7 @@ const now = new Date().toISOString();
 
 const FEATURED_ITEMS: SafeProduct[] = [
   {
-    _id: "feat-1",
+    _id: "6695b1f0e24a1b001a2b3c01",
     name: "Ceramic Pour-Over Coffee Set",
     slug: "ceramic-pour-over-set",
     description: "Hand-thrown matte stoneware pour-over dripper paired with a thermal double-walled carafe.",
@@ -27,7 +27,7 @@ const FEATURED_ITEMS: SafeProduct[] = [
     updatedAt: now,
   },
   {
-    _id: "feat-2",
+    _id: "6695b1f0e24a1b001a2b3c02",
     name: "Linen Weekend Travel Bag",
     slug: "linen-weekend-bag",
     description: "Spacious heavy-duty natural linen duffel featuring reinforced vegetable-tanned leather handles.",
@@ -44,7 +44,7 @@ const FEATURED_ITEMS: SafeProduct[] = [
     updatedAt: now,
   },
   {
-    _id: "feat-3",
+    _id: "6695b1f0e24a1b001a2b3c03",
     name: "Matte Steel Water Bottle (1L)",
     slug: "matte-steel-water-bottle",
     description: "Vacuum-insulated food-grade stainless steel bottle keeping beverages cold for 24 hours.",
@@ -61,7 +61,7 @@ const FEATURED_ITEMS: SafeProduct[] = [
     updatedAt: now,
   },
   {
-    _id: "feat-4",
+    _id: "6695b1f0e24a1b001a2b3c04",
     name: "Woven Bamboo Desk Organizer",
     slug: "woven-desk-organizer",
     description: "Minimalist multi-compartment desktop caddy woven from natural organic bamboo fiber.",

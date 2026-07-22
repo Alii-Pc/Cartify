@@ -4,16 +4,24 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShopLayout } from "@/components/layout/ShopLayout";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
-import { Calendar, Package, ArrowRight, ShoppingBag, Eye } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/components/ui/Toast";
+import { ArrowRight, ShoppingBag, Eye, RefreshCw } from "lucide-react";
 import type { SafeOrder } from "@/types";
+
+const STATUS_TABS = ["all", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<SafeOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  const { addToCart } = useCart();
+  const { addToast } = useToast();
 
   useEffect(() => {
     async function fetchOrders() {
@@ -37,6 +45,10 @@ export default function OrderHistoryPage() {
     fetchOrders();
   }, [page]);
 
+  const filteredOrders = activeTab === "all"
+    ? orders
+    : orders.filter((o) => o.status === activeTab);
+
   const getStatusTone = (status: string): BadgeTone => {
     if (status === "confirmed" || status === "delivered") return "olive";
     if (status === "processing" || status === "shipped") return "amber";
@@ -52,17 +64,63 @@ export default function OrderHistoryPage() {
     });
   };
 
+  const handleReorder = (order: SafeOrder) => {
+    let reorderCount = 0;
+    for (const item of order.items) {
+      addToCart(
+        {
+          _id: item.productId,
+          name: item.name,
+          slug: item.slug,
+          price: item.price,
+          description: "",
+          category: "general",
+          images: [item.image],
+          stock: 99,
+          rating: 5,
+          reviewCount: 1,
+          featured: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        item.quantity
+      );
+      reorderCount += item.quantity;
+    }
+    addToast("success", `Re-ordered ${reorderCount} items from Order #${order.orderNumber}!`);
+  };
+
   return (
     <ShopLayout>
       <div className="bg-cream-50 min-h-[85vh] py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold text-charcoal-900 sm:text-4xl">
-              Order History
-            </h1>
-            <p className="mt-1 text-sm text-charcoal-700/70">
-              Track and view all of your past orders.
-            </p>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-charcoal-900 sm:text-4xl">
+                Order History
+              </h1>
+              <p className="mt-1 text-sm text-charcoal-700/70">
+                Track and view all of your past orders.
+              </p>
+            </div>
+
+            {/* Status Filter Pills */}
+            <div className="flex flex-wrap gap-1.5 self-start sm:self-auto">
+              {STATUS_TABS.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider transition-all ${
+                    activeTab === tab
+                      ? "bg-olive-800 text-cream-50 shadow-xs"
+                      : "bg-white text-charcoal-700/70 hover:bg-cream-100 hover:text-charcoal-900 border border-olive-100"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
           </div>
 
           {loading ? (
@@ -76,16 +134,16 @@ export default function OrderHistoryPage() {
             <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
               <p className="text-sm text-red-700">{error}</p>
             </div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
             <div className="card-surface p-16 text-center flex flex-col items-center justify-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-olive-100 text-olive-800 mb-6">
                 <ShoppingBag className="h-10 w-10" />
               </div>
               <h2 className="font-display text-2xl font-semibold text-charcoal-900">
-                You haven&apos;t placed any orders yet
+                {orders.length === 0 ? "You haven't placed any orders yet" : `No ${activeTab} orders found`}
               </h2>
               <p className="mt-2 max-w-md text-sm text-charcoal-700/70 leading-relaxed">
-                Explore our premium handcrafted essentials and deals to place your first order.
+                Explore our premium handcrafted essentials and deals to place your order.
               </p>
               <Link
                 href="/products"
@@ -99,7 +157,7 @@ export default function OrderHistoryPage() {
             <div className="space-y-6">
               {/* Orders List */}
               <div className="space-y-4">
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <div key={order._id} className="card-surface overflow-hidden border border-olive-100/60 hover:shadow-sm transition-all duration-200">
                     {/* Top Order header bar */}
                     <div className="bg-cream-100/40 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-olive-100/60">
@@ -118,13 +176,22 @@ export default function OrderHistoryPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <Badge tone={getStatusTone(order.status)}>
                           {order.status}
                         </Badge>
+                        <button
+                          type="button"
+                          onClick={() => handleReorder(order)}
+                          className="rounded-full bg-cream-100 border border-olive-200 px-3 py-1.5 text-xs font-semibold text-olive-800 hover:bg-olive-100 transition-all flex items-center gap-1 shadow-2xs"
+                          title="Re-order these items"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          <span>Re-order</span>
+                        </button>
                         <Link
                           href={`/orders/${order.orderNumber}`}
-                          className="rounded-full bg-white border border-olive-200 px-3.5 py-1.5 text-xs font-semibold text-charcoal-800 hover:bg-cream-100 transition-all flex items-center gap-1 hover:no-underline"
+                          className="rounded-full bg-white border border-olive-200 px-3.5 py-1.5 text-xs font-semibold text-charcoal-800 hover:bg-cream-100 transition-all flex items-center gap-1 hover:no-underline shadow-2xs"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           <span>View Details</span>

@@ -22,7 +22,7 @@ import type { SafeProduct } from "@/types";
 
 const HERO_SHOWCASE_ITEMS: SafeProduct[] = [
   {
-    _id: "hero-1",
+    _id: "6695b1f0e24a1b001a2b3c01",
     name: "Ceramic Pour-Over Coffee Set",
     slug: "ceramic-pour-over-set",
     description:
@@ -42,7 +42,7 @@ const HERO_SHOWCASE_ITEMS: SafeProduct[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    _id: "hero-2",
+    _id: "6695b1f0e24a1b001a2b3c02",
     name: "Linen Weekend Travel Bag",
     slug: "linen-weekend-bag",
     description:
@@ -62,7 +62,7 @@ const HERO_SHOWCASE_ITEMS: SafeProduct[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    _id: "hero-3",
+    _id: "6695b1f0e24a1b001a2b3c03",
     name: "Matte Steel Water Bottle (1L)",
     slug: "matte-steel-water-bottle",
     description:
