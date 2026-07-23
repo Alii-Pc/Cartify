@@ -51,6 +51,12 @@ function formatOrder(order: any): SafeOrder {
     total: order.total,
     status: order.status,
     promoCode: order.promoCode,
+    paymentStatus: order.paymentStatus || "pending",
+    paymentMethod: order.paymentMethod || "stripe",
+    stripeSessionId: order.stripeSessionId,
+    stripePaymentIntentId: order.stripePaymentIntentId,
+    paidAt: order.paidAt?.toISOString(),
+    invoiceNumber: order.invoiceNumber,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
   };
@@ -180,6 +186,9 @@ export async function POST(req: NextRequest) {
       discount,
       total,
       status: "confirmed", // Set order as confirmed directly
+      paymentMethod: "cod",
+      paymentStatus: "paid",
+      paidAt: new Date(),
       promoCode: promoCode?.trim().toUpperCase() || undefined,
     });
 

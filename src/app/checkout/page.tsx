@@ -281,7 +281,7 @@ function CheckoutForm() {
     setCheckoutError(null);
 
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -307,17 +307,21 @@ function CheckoutForm() {
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        setCheckoutError(json.message || "Failed to place your order. Please try again.");
-        addToast("error", json.message || "Order checkout failed");
+        setCheckoutError(json.message || "Failed to initialize checkout. Please try again.");
+        addToast("error", json.message || "Checkout failed");
         return;
       }
 
-      addToast("success", "Order placed successfully! Redirecting...");
-      clearCart();
-      router.push(`/orders/${json.data.orderNumber}`);
+      // Redirect to Stripe Checkout
+      if (json.data && json.data.sessionUrl) {
+        window.location.href = json.data.sessionUrl;
+      } else {
+        setCheckoutError("Invalid response from checkout service.");
+        addToast("error", "Invalid response from checkout service");
+      }
     } catch {
       setCheckoutError("Network error. Please try again.");
-      addToast("error", "Failed to connect to order API");
+      addToast("error", "Failed to connect to checkout service");
     } finally {
       setIsPlacingOrder(false);
     }
@@ -657,20 +661,28 @@ function CheckoutForm() {
             ) : null}
           </div>
 
-          {/* Payment Method Details (Simulated) */}
+          {/* Payment Method Details (Stripe) */}
           <div className="card-surface p-6 sm:p-8">
             <h2 className="font-display text-lg font-bold text-charcoal-900 sm:text-xl border-b border-olive-100 pb-4 mb-5 flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-olive-750" />
-              <span>Simulated Payment Gateway</span>
+              <span>Payment Method</span>
             </h2>
-            <div className="bg-cream-50/50 p-4 rounded-xl border border-olive-150 flex items-start gap-3">
-              <div className="rounded-full bg-olive-100 p-2 text-olive-800 flex-shrink-0 mt-0.5">
-                <Check className="h-4 w-4" />
+            <div className="bg-cream-50/50 p-5 rounded-xl border border-olive-150 flex items-start gap-4">
+              <div className="rounded-lg bg-white border border-olive-100 p-2 text-olive-800 flex-shrink-0 mt-0.5 shadow-sm">
+                <CreditCard className="h-6 w-6" />
               </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-charcoal-800">Simulated Sandbox Sandbox Mode</p>
-                <p className="text-xs text-charcoal-700/70 leading-relaxed mt-1">
-                  Payment is fully simulated. No real charge will be incurred. Clicking &quot;Place Order&quot; immediately authorizes and confirms the transaction.
+              <div className="flex-1">
+                <p className="text-sm font-bold text-charcoal-900 flex items-center gap-2">
+                  Secure payment powered by Stripe
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs font-semibold text-charcoal-700 bg-white border border-olive-200 px-2 py-0.5 rounded shadow-sm">Visa</span>
+                  <span className="text-xs font-semibold text-charcoal-700 bg-white border border-olive-200 px-2 py-0.5 rounded shadow-sm">Mastercard</span>
+                  <span className="text-xs font-semibold text-charcoal-700 bg-white border border-olive-200 px-2 py-0.5 rounded shadow-sm">Amex</span>
+                </div>
+                <p className="text-xs text-charcoal-700/70 leading-relaxed mt-3 flex items-center gap-1.5">
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                  256-bit SSL encrypted & secure
                 </p>
               </div>
             </div>
@@ -794,10 +806,10 @@ function CheckoutForm() {
               {isPlacingOrder ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream-50 border-t-transparent" />
-                  <span>Authorizing Payment...</span>
+                  <span>Creating secure session...</span>
                 </span>
               ) : (
-                <span>Place Order</span>
+                <span>Pay with Stripe</span>
               )}
             </button>
           </div>

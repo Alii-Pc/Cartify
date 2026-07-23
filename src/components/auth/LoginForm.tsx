@@ -40,7 +40,7 @@ export function LoginForm() {
     }
 
     await refreshUser();
-    const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+    const redirectTo = searchParams.get("redirectTo") || "/";
     router.push(redirectTo);
     router.refresh();
   };

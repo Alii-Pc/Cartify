@@ -6,10 +6,10 @@ import { ShopLayout } from "@/components/layout/ShopLayout";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/components/ui/Toast";
-import { ArrowRight, ShoppingBag, Eye, RefreshCw } from "lucide-react";
+import { ArrowRight, ShoppingBag, Eye, RefreshCw, Download } from "lucide-react";
 import type { SafeOrder } from "@/types";
 
-const STATUS_TABS = ["all", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
+const STATUS_TABS = ["all", "pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<SafeOrder[]>([]);
@@ -53,7 +53,16 @@ export default function OrderHistoryPage() {
     if (status === "confirmed" || status === "delivered") return "olive";
     if (status === "processing" || status === "shipped") return "amber";
     if (status === "cancelled") return "charcoal";
+    if (status === "pending") return "amber";
     return "olive";
+  };
+
+  const getPaymentStatusTone = (status: string): BadgeTone => {
+    if (status === "paid") return "olive";
+    if (status === "pending") return "amber";
+    if (status === "failed") return "red";
+    if (status === "refunded") return "sky";
+    return "charcoal";
   };
 
   const formatDate = (dateStr: string) => {
@@ -176,10 +185,23 @@ export default function OrderHistoryPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge tone={getStatusTone(order.status)}>
                           {order.status}
                         </Badge>
+                        <Badge tone={getPaymentStatusTone(order.paymentStatus)}>
+                          {order.paymentStatus === 'paid' ? 'Paid' : order.paymentStatus === 'pending' ? 'Unpaid' : order.paymentStatus === 'failed' ? 'Failed' : 'Refunded'}
+                        </Badge>
+                        {order.paymentStatus === 'paid' && (
+                          <a
+                            href={`/api/orders/${order._id}/invoice`}
+                            download
+                            className="rounded-full bg-cream-100 border border-olive-200 p-1.5 text-olive-800 hover:bg-olive-100 transition-all shadow-2xs"
+                            title="Download Invoice"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleReorder(order)}

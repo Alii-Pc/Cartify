@@ -21,6 +21,9 @@ export interface IOrderItem {
   quantity: number;
 }
 
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type PaymentMethod = "stripe" | "cod";
+
 export interface IOrder extends Document {
   orderNumber: string;
   userId: Types.ObjectId;
@@ -33,6 +36,13 @@ export interface IOrder extends Document {
   total: number;
   status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
   promoCode?: string | undefined;
+  // Payment fields
+  paymentStatus: PaymentStatus;
+  paymentMethod: PaymentMethod;
+  stripeSessionId?: string | undefined;
+  stripePaymentIntentId?: string | undefined;
+  paidAt?: Date | undefined;
+  invoiceNumber?: string | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -81,12 +91,28 @@ const orderSchema = new Schema<IOrder>(
       default: "pending",
     },
     promoCode: { type: String },
+    // Payment fields
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending",
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["stripe", "cod"],
+      default: "stripe",
+    },
+    stripeSessionId: { type: String, sparse: true },
+    stripePaymentIntentId: { type: String, sparse: true },
+    paidAt: { type: Date },
+    invoiceNumber: { type: String, sparse: true },
   },
   { timestamps: true }
 );
 
 orderSchema.index({ userId: 1, createdAt: -1 });
-
+orderSchema.index({ stripeSessionId: 1 }, { sparse: true });
+orderSchema.index({ invoiceNumber: 1 }, { sparse: true });
 
 // Auto-generate orderNumber if not set
 orderSchema.pre("validate", function (next) {

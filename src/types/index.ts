@@ -122,6 +122,8 @@ export interface ShippingAddress {
 
 // ── Order Types ──
 export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type PaymentMethod = "stripe" | "cod";
 
 export interface OrderItem {
   productId: string;
@@ -145,6 +147,13 @@ export interface SafeOrder {
   total: number;
   status: OrderStatus;
   promoCode?: string | undefined;
+  // Payment fields
+  paymentStatus: PaymentStatus;
+  paymentMethod: PaymentMethod;
+  stripeSessionId?: string | undefined;
+  stripePaymentIntentId?: string | undefined;
+  paidAt?: string | undefined;
+  invoiceNumber?: string | undefined;
   createdAt: string;
   updatedAt: string;
 }
@@ -156,4 +165,3 @@ export interface UserAddress extends ShippingAddress {
   createdAt: string;
   updatedAt: string;
 }
-
