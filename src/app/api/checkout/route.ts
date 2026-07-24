@@ -143,13 +143,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin;
+    const baseUrl = rawAppUrl.startsWith("http") ? rawAppUrl : `https://${rawAppUrl}`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
       ...(coupon && { discounts: [{ coupon: coupon.id }] }),
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/cancel?order_id=${newOrder._id}`,
+      success_url: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/payment/cancel?order_id=${newOrder._id}`,
       metadata: { orderId: newOrder._id.toString(), userId: user._id.toString() },
       client_reference_id: user._id.toString(),
       customer_email: shippingAddress.email,
