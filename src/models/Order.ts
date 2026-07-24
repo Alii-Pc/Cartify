@@ -111,8 +111,6 @@ const orderSchema = new Schema<IOrder>(
 );
 
 orderSchema.index({ userId: 1, createdAt: -1 });
-orderSchema.index({ stripeSessionId: 1 }, { sparse: true });
-orderSchema.index({ invoiceNumber: 1 }, { sparse: true });
 
 // Auto-generate orderNumber if not set
 orderSchema.pre("validate", function (next) {
