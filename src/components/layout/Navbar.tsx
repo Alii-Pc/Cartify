@@ -24,7 +24,7 @@ const NAV_LINKS = [
   { href: "/categories", label: "Categories" },
   { href: "/#deals", label: "Deals" },
   { href: "/contact", label: "Contact" },
-  { href: "/#about", label: "About" },
+  { href: "/about", label: "About" },
 ];
 
 export function Navbar() {

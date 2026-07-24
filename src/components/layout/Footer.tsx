@@ -48,7 +48,7 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold text-cream-50">Support</h4>
           <ul className="mt-3 space-y-2 text-sm text-cream-100/60">
-            <li><Link href="/#about" className="hover:text-cream-50">About Cartify</Link></li>
+            <li><Link href="/about" className="hover:text-cream-50">About Cartify</Link></li>
             <li><Link href="/contact" className="hover:text-cream-50">Contact Us</Link></li>
             <li><Link href="/contact#faq" className="hover:text-cream-50">FAQs &amp; Help</Link></li>
             <li><Link href="/cart" className="hover:text-cream-50">Shipping &amp; Returns</Link></li>
