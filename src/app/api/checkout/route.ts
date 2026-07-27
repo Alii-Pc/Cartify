@@ -75,6 +75,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (orderItems.length === 0) {
+      return errorResponse("The products in your cart are no longer available.", 400);
+    }
+
     const totals = calculateOrderTotals(subtotal, promoCode);
     const { discount, shipping, tax, total } = totals;
 
@@ -95,17 +99,31 @@ export async function POST(req: NextRequest) {
 
     await newOrder.save();
 
-    const lineItems: any[] = orderItems.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.name,
-          images: item.image ? [item.image] : [],
+    const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin;
+    const baseUrl = rawAppUrl.startsWith("http") ? rawAppUrl : `https://${rawAppUrl}`;
+
+    const lineItems: any[] = orderItems.map((item) => {
+      let imageUrls: string[] = [];
+      if (item.image) {
+        if (item.image.startsWith("http")) {
+          imageUrls = [item.image];
+        } else {
+          imageUrls = [`${baseUrl}${item.image.startsWith("/") ? "" : "/"}${item.image}`];
+        }
+      }
+
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.name,
+            images: imageUrls,
+          },
+          unit_amount: Math.round(item.price * 100),
         },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quantity: item.quantity,
-    }));
+        quantity: item.quantity,
+      };
+    });
 
     if (shipping > 0) {
       lineItems.push({
@@ -143,8 +161,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin;
-    const baseUrl = rawAppUrl.startsWith("http") ? rawAppUrl : `https://${rawAppUrl}`;
+
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
