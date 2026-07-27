@@ -315,7 +315,6 @@ export const SEED_PRODUCTS = [
     price: 42.00,
     category: "beauty",
     images: [
-      "https://images.unsplash.com/photo-1608248597359-0e6d526a67e8?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80"
     ],
     rating: 4.9,
@@ -418,7 +417,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 115.00,
     category: "kitchen",
     images: [
-      "https://images.unsplash.com/photo-1590794056226-79ef3a8147e1?auto=format&fit=crop&w=800&q=80"
+      "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80"
     ],
     rating: 4.9,
     reviewCount: 47,
