@@ -6,80 +6,10 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { ArrowRight, Flame, Clock, Sparkles } from "lucide-react";
 import type { SafeProduct } from "@/types";
 
-const now = new Date().toISOString();
-
-const FEATURED_ITEMS: SafeProduct[] = [
-  {
-    _id: "6695b1f0e24a1b001a2b3c01",
-    name: "Ceramic Pour-Over Coffee Set",
-    slug: "ceramic-pour-over-set",
-    description: "Hand-thrown matte stoneware pour-over dripper paired with a thermal double-walled carafe.",
-    price: 38.0,
-    compareAtPrice: 48.0,
-    category: "kitchen",
-    stock: 14,
-    rating: 4.9,
-    reviewCount: 128,
-    images: ["https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80"],
-    tag: "New",
-    featured: true,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    _id: "6695b1f0e24a1b001a2b3c02",
-    name: "Linen Weekend Travel Bag",
-    slug: "linen-weekend-bag",
-    description: "Spacious heavy-duty natural linen duffel featuring reinforced vegetable-tanned leather handles.",
-    price: 74.0,
-    compareAtPrice: 95.0,
-    category: "apparel",
-    stock: 8,
-    rating: 4.8,
-    reviewCount: 84,
-    images: ["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80"],
-    tag: "Sale",
-    featured: true,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    _id: "6695b1f0e24a1b001a2b3c03",
-    name: "Matte Steel Water Bottle (1L)",
-    slug: "matte-steel-water-bottle",
-    description: "Vacuum-insulated food-grade stainless steel bottle keeping beverages cold for 24 hours.",
-    price: 22.0,
-    compareAtPrice: 28.0,
-    category: "outdoors",
-    stock: 25,
-    rating: 5.0,
-    reviewCount: 240,
-    images: ["https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80"],
-    tag: "Bestseller",
-    featured: true,
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    _id: "6695b1f0e24a1b001a2b3c04",
-    name: "Woven Bamboo Desk Organizer",
-    slug: "woven-desk-organizer",
-    description: "Minimalist multi-compartment desktop caddy woven from natural organic bamboo fiber.",
-    price: 29.0,
-    compareAtPrice: 35.0,
-    category: "home-living",
-    stock: 12,
-    rating: 4.7,
-    reviewCount: 62,
-    images: ["https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=80"],
-    tag: "New",
-    featured: true,
-    createdAt: now,
-    updatedAt: now,
-  },
-];
-
 export function FeaturedProducts() {
+  const [featuredProducts, setFeaturedProducts] = useState<SafeProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [timeLeft, setTimeLeft] = useState({
     hours: 8,
     minutes: 42,
@@ -87,6 +17,21 @@ export function FeaturedProducts() {
   });
 
   useEffect(() => {
+    async function fetchFeatured() {
+      try {
+        const res = await fetch("/api/products?featured=true&limit=4");
+        const json = await res.json();
+        if (json.success && json.data?.products) {
+          setFeaturedProducts(json.data.products);
+        }
+      } catch (err) {
+        console.error("Failed to load featured products", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchFeatured();
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.seconds > 0) {
@@ -151,9 +96,19 @@ export function FeaturedProducts() {
 
         {/* Product Cards Grid */}
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURED_ITEMS.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-80 rounded-2xl bg-white/50 animate-pulse border border-olive-100" />
+            ))
+          ) : featuredProducts.length > 0 ? (
+            featuredProducts.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 text-charcoal-700/60 text-sm font-semibold">
+              No featured products available right now. Check back soon!
+            </div>
+          )}
         </div>
 
         {/* Bottom CTA Banner */}
