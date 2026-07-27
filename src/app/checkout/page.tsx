@@ -75,6 +75,8 @@ function CheckoutForm() {
             setSelectedAddressId(defaultAddr._id);
           } else if (list.length > 0) {
             setSelectedAddressId(list[0]._id);
+          } else {
+            setShowAddressForm(true);
           }
         }
       } catch (err) {
@@ -266,15 +268,53 @@ function CheckoutForm() {
 
   // ── Place Order Action ──
   const handlePlaceOrder = async () => {
-    if (!selectedAddressId) {
-      setCheckoutError("Please select or add a shipping address");
-      return;
-    }
+    let finalAddress;
 
-    const selectedAddrObj = addresses.find((a) => a._id === selectedAddressId);
-    if (!selectedAddrObj) {
-      setCheckoutError("Invalid shipping address selected");
-      return;
+    if (showAddressForm) {
+      if (!validateAddressForm()) {
+        setCheckoutError("Please complete your shipping address details.");
+        return;
+      }
+      finalAddress = {
+        fullName: addressForm.fullName,
+        email: addressForm.email,
+        addressLine1: addressForm.addressLine1,
+        addressLine2: addressForm.addressLine2 || undefined,
+        city: addressForm.city,
+        state: addressForm.state,
+        zipCode: addressForm.zipCode,
+        country: addressForm.country,
+        phone: addressForm.phone,
+      };
+      
+      // Auto-save the address in background
+      fetch("/api/addresses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...addressForm, addressLine2: addressForm.addressLine2 || undefined }),
+      }).catch(console.error);
+    } else {
+      if (!selectedAddressId) {
+        setCheckoutError("Please select or add a shipping address");
+        return;
+      }
+
+      const selectedAddrObj = addresses.find((a) => a._id === selectedAddressId);
+      if (!selectedAddrObj) {
+        setCheckoutError("Invalid shipping address selected");
+        return;
+      }
+      finalAddress = {
+        fullName: selectedAddrObj.fullName,
+        email: selectedAddrObj.email,
+        addressLine1: selectedAddrObj.addressLine1,
+        addressLine2: selectedAddrObj.addressLine2 || undefined,
+        city: selectedAddrObj.city,
+        state: selectedAddrObj.state,
+        zipCode: selectedAddrObj.zipCode,
+        country: selectedAddrObj.country,
+        phone: selectedAddrObj.phone,
+      };
     }
 
     setIsPlacingOrder(true);
@@ -285,17 +325,7 @@ function CheckoutForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          shippingAddress: {
-            fullName: selectedAddrObj.fullName,
-            email: selectedAddrObj.email,
-            addressLine1: selectedAddrObj.addressLine1,
-            addressLine2: selectedAddrObj.addressLine2 || undefined,
-            city: selectedAddrObj.city,
-            state: selectedAddrObj.state,
-            zipCode: selectedAddrObj.zipCode,
-            country: selectedAddrObj.country,
-            phone: selectedAddrObj.phone,
-          },
+          shippingAddress: finalAddress,
           promoCode: appliedPromo || undefined,
           items: cartItems.map((item) => ({
             productId: item.product._id,
@@ -554,16 +584,18 @@ function CheckoutForm() {
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-olive-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddressForm(false);
-                      setEditingAddress(null);
-                    }}
-                    className="rounded-full border border-olive-200 bg-white px-5 py-2 text-xs font-semibold text-charcoal-800 hover:bg-cream-100 transition-colors"
-                  >
-                    Cancel
-                  </button>
+                  {addresses.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddressForm(false);
+                        setEditingAddress(null);
+                      }}
+                      className="rounded-full border border-olive-200 bg-white px-5 py-2 text-xs font-semibold text-charcoal-800 hover:bg-cream-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
                   <button
                     type="submit"
                     disabled={isFormSubmitting}

@@ -31,10 +31,7 @@ export async function GET(req: NextRequest) {
     }
 
     return successResponse({
-      orderId: order._id,
-      orderNumber: order.orderNumber,
-      paymentStatus: order.paymentStatus,
-      status: order.status,
+      order,
     });
   } catch (err: any) {
     if (err?.digest === "DYNAMIC_SERVER_USAGE") {
