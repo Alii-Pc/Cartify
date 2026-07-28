@@ -60,4 +60,66 @@
   .animate-fadeIn {
     animation: fadeIn 0.4s ease-out both;
   }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* ── Admin Dashboard ── */
+@layer components {
+  .admin-card {
+    @apply rounded-2xl bg-white border border-olive-100 p-6 shadow-sm transition-shadow hover:shadow-md;
+  }
+
+  .admin-table-wrapper {
+    @apply overflow-x-auto rounded-xl border border-olive-100 bg-white shadow-sm;
+  }
+
+  .admin-table {
+    @apply w-full text-left text-sm text-charcoal-700 whitespace-nowrap;
+  }
+
+  .admin-table th {
+    @apply sticky top-0 bg-olive-50 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-olive-800 border-b border-olive-100;
+  }
+
+  .admin-table td {
+    @apply px-6 py-4 border-b border-olive-50 transition-colors;
+  }
+
+  .admin-table tbody tr {
+    @apply bg-white transition-colors duration-150;
+  }
+
+  .admin-table tbody tr:nth-child(even) {
+    @apply bg-cream-50/50;
+  }
+
+  .admin-table tbody tr:hover {
+    @apply bg-olive-50/50;
+  }
+
+  .admin-badge {
+    @apply inline-flex items-center justify-center rounded-full px-2.5 py-1 text-xs font-medium tracking-wide;
+  }
+
+  .admin-input {
+    @apply w-full rounded-lg border border-olive-200 bg-white px-3 py-2 text-sm text-charcoal-800 placeholder:text-charcoal-400 transition-colors focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500;
+  }
+
+  .admin-select {
+    @apply appearance-none rounded-lg border border-olive-200 bg-white px-3 py-2 pr-8 text-sm text-charcoal-800 transition-colors focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+  }
 }
