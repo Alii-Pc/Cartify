@@ -9,7 +9,8 @@ import {
   FolderTree, 
   ShoppingBag, 
   Store,
-  X 
+  X,
+  PackageOpen
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -25,9 +26,10 @@ export default function AdminSidebar({ isOpen, onClose, isMobile, isCollapsed }:
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Users", href: "/admin/users", icon: Users },
-    // { name: "Products", href: "/admin/products", icon: Package },
-    //{ name: "Categories", href: "/admin/categories", icon: FolderTree },
-    //{ name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { name: "Products", href: "/admin/products", icon: Package },
+    { name: "Categories", href: "/admin/categories", icon: FolderTree },
+   // { name: "Inventory", href: "/admin/inventory", icon: PackageOpen },
+   // { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
   ];
 
   const sidebarClasses = `

@@ -59,10 +59,22 @@ export async function GET(req: NextRequest) {
       { $sort: { _id: 1 } }
     ]);
 
-    const formattedRevenue = revenueByDay.map(day => ({
-      day: day._id,
-      total: day.revenue
-    }));
+    const last7Days: { day: string; total: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      last7Days.push({
+        day: d.toISOString().split('T')[0] || "",
+        total: 0
+      });
+    }
+
+    revenueByDay.forEach(day => {
+      const match = last7Days.find(d => d.day === day._id);
+      if (match) match.total = day.revenue;
+    });
+
+    const formattedRevenue = last7Days;
 
     const ordersByStatus = statusCounts.map((curr: any) => ({
       status: curr._id,
