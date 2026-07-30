@@ -8,8 +8,10 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-const updateRoleSchema = z.object({
-  role: z.enum(["user", "admin"])
+const updateUserSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").optional(),
+  email: z.string().email("Invalid email").optional(),
+  role: z.enum(["user", "admin"]).optional()
 });
 
 export async function GET(
@@ -49,26 +51,26 @@ export async function PUT(
     if (auth.errorResponse) return auth.errorResponse;
 
     const body = await req.json();
-    const parsed = updateRoleSchema.safeParse(body);
+    const parsed = updateUserSchema.safeParse(body);
     if (!parsed.success) {
-      return errorResponse("Invalid role", 400, parsed.error.flatten().fieldErrors);
+      return errorResponse("Invalid input", 400, parsed.error.flatten().fieldErrors);
     }
 
     await connectDB();
     const user = await User.findByIdAndUpdate(
       params.userId,
-      { role: parsed.data.role },
+      { $set: parsed.data },
       { new: true }
     )
       .select("-password -verificationOtp -verificationOtpExpires -resetPasswordToken -resetPasswordTokenExpires")
       .lean();
 
     if (!user) return errorResponse("User not found", 404);
-    return successResponse(user, "User role updated successfully");
+    return successResponse(user, "User updated successfully");
   } catch (error: any) {
     if (error.message === "DYNAMIC_SERVER_USAGE") throw error;
-    console.error("Admin update user role error:", error);
-    return errorResponse("Failed to update user role", 500);
+    console.error("Admin update user error:", error);
+    return errorResponse("Failed to update user", 500);
   }
 }
 

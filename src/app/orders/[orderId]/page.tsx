@@ -310,7 +310,7 @@ export default function OrderConfirmationPage() {
                 {order.paymentStatus === 'paid' && (
                   <a
                     href={`/api/orders/${order._id}/invoice`}
-                    download
+                    target="_blank"
                     className="flex items-center justify-center gap-2 w-full rounded-full bg-charcoal-800 py-3 text-center font-display text-sm font-bold text-cream-50 hover:bg-charcoal-900 shadow-sm hover:scale-[1.01] active:scale-99 transition-all"
                   >
                     <FileText className="h-4 w-4" />

@@ -114,7 +114,7 @@ function PaymentSuccessContent() {
             
             <a
               href={`/api/orders/${order._id}/invoice`}
-              download
+              target="_blank"
               className="inline-flex items-center gap-2 rounded-full border border-olive-200 bg-white px-4 py-2 text-sm font-semibold text-olive-800 hover:bg-cream-100 transition-all shadow-sm"
             >
               <Download className="h-4 w-4" />

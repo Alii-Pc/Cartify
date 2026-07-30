@@ -40,7 +40,12 @@ export function LoginForm() {
     }
 
     await refreshUser();
-    const redirectTo = searchParams.get("redirectTo") || "/";
+    
+    let defaultRedirect = "/";
+    if (window.location.pathname === "/admin/login") {
+      defaultRedirect = "/admin";
+    }
+    const redirectTo = searchParams.get("redirectTo") || defaultRedirect;
     router.push(redirectTo);
     router.refresh();
   };

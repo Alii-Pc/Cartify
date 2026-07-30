@@ -195,7 +195,7 @@ export default function OrderHistoryPage() {
                         {order.paymentStatus === 'paid' && (
                           <a
                             href={`/api/orders/${order._id}/invoice`}
-                            download
+                            target="_blank"
                             className="rounded-full bg-cream-100 border border-olive-200 p-1.5 text-olive-800 hover:bg-olive-100 transition-all shadow-2xs"
                             title="Download Invoice"
                           >

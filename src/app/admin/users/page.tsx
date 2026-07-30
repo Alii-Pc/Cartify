@@ -36,13 +36,15 @@ export default function UserManagementPage() {
   
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    type: 'role' | 'delete' | null;
+    type: 'edit' | 'delete' | null;
     user: User | null;
   }>({
     isOpen: false,
     type: null,
     user: null
   });
+
+  const [editFormData, setEditFormData] = useState({ name: "", email: "", role: "user" });
 
   const [actionLoading, setActionLoading] = useState(false);
   const { addToast } = useToast();
@@ -86,28 +88,27 @@ export default function UserManagementPage() {
     fetchUsers(1, debouncedSearch, roleFilter);
   }, [fetchUsers, debouncedSearch, roleFilter]);
 
-  const handleRoleChange = async () => {
+  const handleEditUser = async () => {
     if (!modalState.user || actionLoading) return;
     
     setActionLoading(true);
     try {
-      const newRole = modalState.user.role === 'admin' ? 'user' : 'admin';
       const res = await fetch(`/api/admin/users/${modalState.user._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole })
+        body: JSON.stringify(editFormData)
       });
       
       const data = await res.json();
       if (res.ok) {
-        addToast("success", `User role updated to ${newRole}`);
+        addToast("success", "User updated successfully");
         fetchUsers(pagination.page);
         closeModal();
       } else {
-        addToast("error", data.message || "Failed to update role");
+        addToast("error", data.message || "Failed to update user");
       }
     } catch (err) {
-      addToast("error", "Failed to update user role");
+      addToast("error", "Failed to update user");
     } finally {
       setActionLoading(false);
     }
@@ -137,7 +138,10 @@ export default function UserManagementPage() {
     }
   };
 
-  const openModal = (type: 'role' | 'delete', user: User) => {
+  const openModal = (type: 'edit' | 'delete', user: User) => {
+    if (type === 'edit') {
+      setEditFormData({ name: user.name, email: user.email, role: user.role });
+    }
     setModalState({ isOpen: true, type, user });
   };
 
@@ -234,11 +238,11 @@ export default function UserManagementPage() {
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="secondary"
-                          onClick={() => openModal('role', user)}
+                          onClick={() => openModal('edit', user)}
                           className="!px-2 !py-1 text-xs"
                           disabled={actionLoading}
                         >
-                          <Edit size={14} className="mr-1" /> Role
+                          <Edit size={14} className="mr-1" /> Edit
                         </Button>
                         <Button
                           variant="secondary"
@@ -290,17 +294,37 @@ export default function UserManagementPage() {
 
       {/* Modals */}
       <AdminModal
-        isOpen={modalState.isOpen && modalState.type === 'role'}
+        isOpen={modalState.isOpen && modalState.type === 'edit'}
         onClose={closeModal}
-        title="Change User Role"
-        onConfirm={handleRoleChange}
-        confirmLabel={actionLoading ? "Updating..." : "Confirm"}
+        title="Edit User"
+        onConfirm={handleEditUser}
+        confirmLabel={actionLoading ? "Saving..." : "Save Changes"}
         confirmVariant="primary"
       >
-        <p>
-          Are you sure you want to make <strong>{modalState.user?.name}</strong> an{" "}
-          <strong>{modalState.user?.role === 'admin' ? 'user' : 'admin'}</strong>?
-        </p>
+        <div className="space-y-4 pt-2">
+          <Input
+            label="Name"
+            value={editFormData.name}
+            onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+          />
+          <Input
+            label="Email"
+            type="email"
+            value={editFormData.email}
+            onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+          />
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-charcoal-800">Role</label>
+            <select
+              className="input-field w-full bg-white"
+              value={editFormData.role}
+              onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
       </AdminModal>
 
       <AdminModal

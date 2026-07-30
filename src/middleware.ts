@@ -30,6 +30,13 @@ export async function middleware(req: NextRequest) {
 
   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+  const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login" && !pathname.startsWith("/api/");
+
+  if (isAdminRoute && !valid) {
+    const loginUrl = new URL("/admin/login", req.url);
+    loginUrl.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
   if (isProtected && !valid) {
     const loginUrl = new URL("/login", req.url);
@@ -45,6 +52,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/checkout/:path*", "/orders/:path*", "/payment/:path*", "/login", "/signup", "/api/webhooks/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/checkout/:path*", "/orders/:path*", "/payment/:path*", "/login", "/signup", "/api/webhooks/:path*"],
 };
 

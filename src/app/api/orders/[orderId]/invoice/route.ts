@@ -163,6 +163,29 @@ export async function GET(
             <p>Thank you for shopping with Cartify!</p>
           </div>
         </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+        <script>
+          window.onload = function() {
+            var element = document.querySelector('.container');
+            var opt = {
+              margin:       [0.5, 0.5, 0.5, 0.5],
+              filename:     'invoice-${invoiceNumber}.pdf',
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2 },
+              jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            
+            // Add a temporary downloading text
+            var footer = document.querySelector('.footer');
+            var originalFooter = footer.innerHTML;
+            footer.innerHTML = '<p style="color: #4f5a34; font-weight: bold;">Generating PDF... You can close this tab once the download starts.</p>';
+            
+            html2pdf().set(opt).from(element).save().then(function() {
+               footer.innerHTML = originalFooter;
+            });
+          }
+        </script>
       </body>
       </html>
     `;
@@ -170,7 +193,6 @@ export async function GET(
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `attachment; filename="invoice-${invoiceNumber}.html"`,
       },
     });
   } catch (err: any) {

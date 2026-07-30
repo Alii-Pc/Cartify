@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Loader } from "@/components/ui/Loader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -31,15 +31,21 @@ export default function AdminLayout({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  const pathname = usePathname();
+
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && pathname !== "/admin/login") {
       if (!user) {
-        router.push("/login");
+        router.push("/admin/login");
       } else if (user.role !== "admin") {
         router.push("/");
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, pathname]);
+
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
 
   if (isLoading || !user || user.role !== "admin") {
     return (
