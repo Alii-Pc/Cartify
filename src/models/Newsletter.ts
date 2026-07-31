@@ -22,4 +22,5 @@ const newsletterSchema = new mongoose.Schema(
 );
 
 export const Newsletter =
-  mongoose.models.Newsletter || mongoose.model("Newsletter", newsletterSchema);
+  (mongoose.models.Newsletter as mongoose.Model<any>) ||
+  mongoose.model("Newsletter", newsletterSchema);
