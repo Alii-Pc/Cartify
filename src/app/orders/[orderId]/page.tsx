@@ -7,6 +7,7 @@ import { ShopLayout } from "@/components/layout/ShopLayout";
 import { CheckCircle, Truck, Package, MapPin, Calendar, CreditCard, ChevronRight, Download, CreditCard as CreditCardIcon, FileText, CheckCircle2, XCircle } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import type { SafeOrder } from "@/types";
+import { useSocket } from "@/components/providers/SocketProvider";
 
 export default function OrderConfirmationPage() {
   const params = useParams();
@@ -15,6 +16,8 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState<SafeOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { socket, isConnected } = useSocket();
 
   useEffect(() => {
     async function fetchOrderDetails() {
@@ -37,6 +40,22 @@ export default function OrderConfirmationPage() {
       fetchOrderDetails();
     }
   }, [orderId]);
+
+  useEffect(() => {
+    if (socket && isConnected && orderId) {
+      const room = `order_${orderId}`;
+      socket.emit("join_room", room);
+
+      socket.on("order_updated", (updatedOrder: SafeOrder) => {
+        setOrder(updatedOrder);
+      });
+
+      return () => {
+        socket.off("order_updated");
+        socket.emit("leave_room", room);
+      };
+    }
+  }, [socket, isConnected, orderId]);
 
   if (loading) {
     return (

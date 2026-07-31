@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Product } from "@/models/Product";
 import { Category } from "@/models/Category";
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
       throw err;
     }
     console.error("GET /api/products error:", err);
-    return errorResponse("Failed to fetch products", 500);
+    return NextResponse.json({ success: false, message: "Failed to fetch products", error: err.message, stack: err.stack }, { status: 500 });
   }
 }
 

@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!user.isVerified) {
+    if (!user.isVerified && process.env.NODE_ENV === "production") {
       return NextResponse.json<ApiResponse<null>>(
         {
           success: false,

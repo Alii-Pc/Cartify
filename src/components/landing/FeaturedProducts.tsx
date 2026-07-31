@@ -112,23 +112,25 @@ export function FeaturedProducts() {
         </div>
 
         {/* Bottom CTA Banner */}
-        <div className="mt-16 rounded-3xl bg-gradient-to-r from-olive-900 via-olive-850 to-olive-900 p-8 sm:p-12 text-cream-50 shadow-md flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center sm:text-left">
-            <div className="inline-flex items-center gap-1.5 text-amber-400 text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" />
+        <div className="mt-16 relative overflow-hidden rounded-3xl border border-olive-200/60 bg-white/50 p-8 sm:p-12 shadow-sm backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-8 group transition-all hover:shadow-md hover:bg-white/70">
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-olive-200/40 blur-3xl transition-transform duration-700 group-hover:scale-150" />
+          
+          <div className="relative z-10 space-y-3 text-center sm:text-left">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-800">
+              <Sparkles className="h-3.5 w-3.5" />
               <span>Over 24+ Unique Items</span>
             </div>
-            <h3 className="font-display text-2xl sm:text-3xl font-bold text-cream-50">
-              Want to see our entire curated catalog?
+            <h3 className="font-display text-2xl sm:text-3xl font-bold text-charcoal-900">
+              Discover the entire collection
             </h3>
-            <p className="text-xs sm:text-sm text-cream-100/70 max-w-xl leading-relaxed">
-              Filter by price, sort by bestsellers, and discover thoughtful essentials designed to elevate your everyday routine.
+            <p className="text-sm text-charcoal-700/80 max-w-xl leading-relaxed font-medium">
+              Filter by price, sort by bestsellers, and find thoughtful essentials designed to elevate your everyday routine.
             </p>
           </div>
 
           <Link
             href="/products"
-            className="flex-shrink-0 inline-flex items-center gap-3 rounded-full bg-cream-50 px-8 py-4 text-sm font-bold text-olive-950 transition-all hover:bg-cream-100 hover:scale-105 active:scale-95 shadow-sm"
+            className="relative z-10 flex-shrink-0 inline-flex items-center gap-2 rounded-full bg-olive-800 px-8 py-4 text-sm font-bold text-cream-50 transition-all hover:bg-olive-900 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
           >
             <span>Explore All Products</span>
             <ArrowRight className="h-4 w-4" />

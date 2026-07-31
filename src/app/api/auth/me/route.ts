@@ -20,20 +20,24 @@ export async function GET(req: NextRequest) {
 
     const payload = verifyToken(token);
     if (!payload) {
-      return NextResponse.json<ApiResponse<null>>(
+      const response = NextResponse.json<ApiResponse<null>>(
         { success: false, message: "Invalid or expired session" },
         { status: 401 }
       );
+      response.cookies.delete(AUTH_COOKIE_NAME);
+      return response;
     }
 
     await connectDB();
     const user = await User.findById(payload.userId);
 
     if (!user) {
-      return NextResponse.json<ApiResponse<null>>(
+      const response = NextResponse.json<ApiResponse<null>>(
         { success: false, message: "User not found" },
         { status: 404 }
       );
+      response.cookies.delete(AUTH_COOKIE_NAME);
+      return response;
     }
 
     const safeUser: SafeUser = {

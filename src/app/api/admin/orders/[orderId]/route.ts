@@ -44,6 +44,21 @@ export async function PUT(
     }
 
     await order.save();
+
+    try {
+      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/internal/socket`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event: "order_updated",
+          room: `order_${order._id.toString()}`,
+          data: order.toObject(),
+        }),
+      }).catch(() => {});
+    } catch (e) {
+      // ignore
+    }
+
     return successResponse(order.toObject(), "Order updated successfully");
   } catch (error: any) {
     if (error.message === "DYNAMIC_SERVER_USAGE") throw error;

@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader } from "@/components/ui/Loader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { NotificationToast } from "@/components/admin/NotificationToast";
 
 export default function AdminLayout({
   children,
@@ -57,6 +58,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-cream-50 font-sans">
+      <NotificationToast />
       <AdminSidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 

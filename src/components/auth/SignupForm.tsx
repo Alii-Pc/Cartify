@@ -33,9 +33,13 @@ export function SignupForm() {
       return;
     }
 
-    // Redirect to the OTP verification page with the email pre-filled
-    const email = encodeURIComponent(data.email);
-    router.push(`/verify-email?email=${email}`);
+    if (result.data?.isVerified) {
+      router.push("/login?verified=true");
+    } else {
+      // Redirect to the OTP verification page with the email pre-filled
+      const email = encodeURIComponent(data.email);
+      router.push(`/verify-email?email=${email}`);
+    }
   };
 
   return (
