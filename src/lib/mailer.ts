@@ -456,3 +456,59 @@ export async function sendOrderEmails(order: any): Promise<void> {
   });
 }
 
+/* ---------------------------------------------------------------------------
+ * Newsletter Emails (User confirmation & Admin notification)
+ * -------------------------------------------------------------------------*/
+export async function sendNewsletterConfirmationEmail(email: string): Promise<void> {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+
+  await sendMailReliably({
+    from,
+    to: email,
+    subject: "Welcome to Cartify! 🪴",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 36px 32px; background: #f5f6f0; border-radius: 16px;">
+        <div style="margin-bottom: 24px;">
+          <span style="font-size: 22px; font-weight: 700; color: #4f5a34;">Cart<span style="color: #8a9a5b;">ify</span></span>
+        </div>
+        <h2 style="color: #2b2b26; font-size: 20px; margin: 0 0 8px;">Thanks for subscribing! 🎉</h2>
+        <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+          You're now on the list to receive exclusive offers, early access to new products, and styling tips straight to your inbox.
+        </p>
+        <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+          As a special welcome, use code <strong>WELCOME10</strong> at checkout for 10% off your first order!
+        </p>
+        <div style="text-align: center; margin-top: 32px;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://cartify.vercel.app"}/products"
+             style="display: inline-block; padding: 12px 32px; background-color: #4f5a34; color: #fdfcf8; text-decoration: none; border-radius: 999px; font-size: 14px; font-weight: 600;">
+            Start Shopping
+          </a>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendNewsletterAdminNotificationEmail(email: string): Promise<void> {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+  const adminEmail = process.env.ADMIN_EMAIL?.trim() || process.env.SMTP_USER?.trim();
+
+  await sendMailReliably({
+    from,
+    to: adminEmail,
+    subject: "[Cartify] New Newsletter Subscriber",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 36px 32px; background: #1e2010; border-radius: 16px; color: #e8ead8;">
+        <div style="margin-bottom: 20px;">
+          <span style="font-size: 20px; font-weight: 700; color: #a0b060;">Cart<span style="color: #c8d890;">ify</span></span>
+          <span style="font-size: 12px; font-weight: 600; background: #3a4820; color: #a0b060; padding: 3px 10px; border-radius: 999px; margin-left: 10px; vertical-align: middle;">Admin Notification</span>
+        </div>
+        <h2 style="font-size: 18px; color: #e8ead8; margin: 0 0 4px;">New Subscriber Alert</h2>
+        <p style="color: #9a9c80; font-size: 13px; margin: 0 0 24px;">Someone just subscribed to the newsletter!</p>
+        <div style="background: #2a2e18; border-radius: 12px; padding: 20px 24px; border: 1px solid #3a3e24; margin-bottom: 24px;">
+          <p style="margin: 0; color: #e8ead8; font-size: 14px;"><strong>Email:</strong> ${email}</p>
+        </div>
+      </div>
+    `,
+  });
+}

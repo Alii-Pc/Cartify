@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,9 +8,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-playfair", // keep the variable name the same so tailwind config doesn't break
   display: "swap",
 });
 
@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <body className="min-h-screen font-sans">
         <AppProviders>{children}</AppProviders>
       </body>

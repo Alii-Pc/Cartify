@@ -4,36 +4,8 @@ export interface CouponDetail {
   value: number; // percentage (e.g. 10) or fixed amount (e.g. 20)
   minSubtotal?: number;
   description: string;
+  isActive?: boolean;
 }
-
-export const VALID_COUPONS: Record<string, CouponDetail> = {
-  WELCOME10: {
-    code: "WELCOME10",
-    type: "percentage",
-    value: 10,
-    description: "10% off your entire order",
-  },
-  CARTIFY20: {
-    code: "CARTIFY20",
-    type: "fixed",
-    value: 20,
-    minSubtotal: 50,
-    description: "$20 off orders over $50",
-  },
-  FREESHIP: {
-    code: "FREESHIP",
-    type: "free_shipping",
-    value: 0,
-    description: "Free shipping on any order",
-  },
-  SUMMER15: {
-    code: "SUMMER15",
-    type: "percentage",
-    value: 15,
-    minSubtotal: 75,
-    description: "15% off orders over $75",
-  },
-};
 
 export interface OrderTotals {
   subtotal: number;
@@ -49,7 +21,7 @@ export interface OrderTotals {
 /**
  * Calculates order subtotal, promo discount, shipping fee, tax, and grand total.
  */
-export function calculateOrderTotals(subtotal: number, promoCode?: string | null): OrderTotals {
+export function calculateOrderTotals(subtotal: number, promoCode?: string | null, dbCoupon?: CouponDetail | null): OrderTotals {
   const cleanSubtotal = Math.max(0, subtotal);
   let discount = 0;
   let appliedCoupon: CouponDetail | null = null;
@@ -57,17 +29,16 @@ export function calculateOrderTotals(subtotal: number, promoCode?: string | null
 
   if (promoCode && promoCode.trim()) {
     const cleanCode = promoCode.trim().toUpperCase();
-    const coupon = VALID_COUPONS[cleanCode];
 
-    if (coupon) {
-      if (coupon.minSubtotal && cleanSubtotal < coupon.minSubtotal) {
-        couponError = `Coupon '${cleanCode}' requires a minimum subtotal of $${coupon.minSubtotal.toFixed(2)}.`;
+    if (dbCoupon && dbCoupon.code === cleanCode) {
+      if (dbCoupon.minSubtotal && cleanSubtotal < dbCoupon.minSubtotal) {
+        couponError = `Coupon '${cleanCode}' requires a minimum subtotal of $${dbCoupon.minSubtotal.toFixed(2)}.`;
       } else {
-        appliedCoupon = coupon;
-        if (coupon.type === "percentage") {
-          discount = cleanSubtotal * (coupon.value / 100);
-        } else if (coupon.type === "fixed") {
-          discount = Math.min(cleanSubtotal, coupon.value);
+        appliedCoupon = dbCoupon;
+        if (dbCoupon.type === "percentage") {
+          discount = cleanSubtotal * (dbCoupon.value / 100);
+        } else if (dbCoupon.type === "fixed") {
+          discount = Math.min(cleanSubtotal, dbCoupon.value);
         }
       }
     } else {

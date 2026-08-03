@@ -56,44 +56,100 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-olive-grain px-4 pb-20 pt-16 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8 lg:pt-28">
-      {/* Background ambient glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/3 -z-10 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-olive-200/40 via-amber-100/30 to-cream-200/50 blur-3xl" />
+    <section className="relative overflow-hidden bg-olive-grain px-4 pb-20 pt-16 sm:px-6 sm:pb-28 sm:pt-24 lg:px-8 lg:pt-32">
+      {/* Dynamic Background Ambient Glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/4 -z-10 h-[600px] w-[1000px] -translate-x-1/2 -translate-y-1/2 opacity-70 mix-blend-multiply">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-olive-300/40 via-amber-200/30 to-emerald-200/40 blur-[100px] animate-pulse" style={{ animationDuration: '5s' }} />
+      </div>
 
-      {/* Hero Headline & Intro */}
-      <div className="mx-auto max-w-4xl text-center">
-        <div className="mx-auto mb-6 flex w-fit items-center gap-2 rounded-full border border-olive-200 bg-white/70 px-4 py-1.5 text-xs font-semibold text-olive-800 shadow-xs backdrop-blur-md">
-          <Sparkles className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
-          <span>New Season &bull; Handcrafted Curations</span>
-        </div>
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+          
+          {/* Left Side: Copy & CTA */}
+          <div className="relative z-10 max-w-2xl text-center lg:text-left">
+            <div className="mx-auto lg:mx-0 mb-8 flex w-fit items-center gap-2 rounded-full border border-olive-200 bg-white/80 px-4 py-1.5 text-xs font-bold text-olive-900 shadow-sm backdrop-blur-md transition-transform hover:scale-105 cursor-default">
+              <Sparkles className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+              <span>Premium Collection &bull; Honest Prices</span>
+            </div>
 
-        <h1 className="font-display text-3xl font-bold leading-tight text-charcoal-900 sm:text-4xl md:text-5xl lg:text-6xl tracking-tight">
-          Shopping that feels{" "}
-          <span className="bg-gradient-to-r from-olive-800 via-olive-600 to-amber-700 bg-clip-text text-transparent">
-            unhurried &amp; refined
-          </span>
-        </h1>
+            <h1 className="font-display text-5xl font-semibold leading-[1.1] text-charcoal-900 sm:text-6xl md:text-7xl tracking-tighter">
+              Premium products <br className="hidden sm:block" />
+              <span className="italic text-olive-800 font-light pr-3">
+                and honest prices always.
+              </span>
+            </h1>
 
-        <p className="mx-auto mt-6 max-w-2xl text-base text-charcoal-700/80 sm:text-lg leading-relaxed">
-          Cartify brings together artisanal quality goods and a serene,
-          matte-olive shopping experience — no clutter, no pressure, just what
-          you came for.
-        </p>
+            <p className="mx-auto lg:mx-0 mt-8 max-w-xl text-base text-charcoal-700/80 sm:text-lg leading-relaxed font-medium">
+              Discover our curated collection of high-quality goods. We believe in transparent pricing, sustainable materials, and exceptional craftsmanship. Experience premium quality without the retail markup.
+            </p>
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link
-            href="/products"
-            className="flex items-center justify-center gap-2 rounded-full bg-olive-800 px-8 py-4 text-sm font-bold text-cream-50 transition-all hover:bg-olive-900 hover:scale-105 active:scale-95 shadow-md w-full sm:w-auto"
-          >
-            <span>Explore Complete Catalog</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/#deals"
-            className="flex items-center justify-center rounded-full border border-olive-300 bg-white/80 px-8 py-4 text-sm font-bold text-olive-900 transition-all hover:bg-white hover:border-olive-400 backdrop-blur-sm shadow-xs w-full sm:w-auto"
-          >
-            <span>View Today&apos;s Flash Deals</span>
-          </Link>
+            <div className="mt-12 flex flex-col items-center justify-center lg:justify-start gap-5 sm:flex-row">
+              <Link
+                href="/products"
+                className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-full bg-charcoal-900 px-8 py-4 text-sm font-bold text-cream-50 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-olive-900/20 active:scale-95 w-full sm:w-auto"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-olive-800 to-olive-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="relative z-10">Shop Collection</span>
+                <ArrowRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="/#deals"
+                className="group flex items-center justify-center gap-2 rounded-full border-2 border-olive-200/80 bg-white/60 px-8 py-4 text-sm font-bold text-olive-900 transition-all hover:bg-white hover:border-olive-400 hover:shadow-xl backdrop-blur-md w-full sm:w-auto"
+              >
+                <Eye className="h-4 w-4 text-amber-500 transition-transform group-hover:scale-110" />
+                <span>View Deals</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Side: Interactive Floating Products */}
+          <div className="relative z-10 h-[400px] sm:h-[500px] lg:h-[600px] w-full mt-10 lg:mt-0">
+            {showcaseItems.map((item, index) => {
+              // Determine position and animation based on index
+              const positions = [
+                "top-[5%] right-[5%] w-[65%] sm:w-[55%] z-20 animate-float-slow",
+                "bottom-[15%] left-[0%] w-[55%] sm:w-[50%] z-30 animate-float-medium",
+                "top-[45%] left-[20%] w-[45%] sm:w-[40%] z-10 animate-float-fast opacity-90",
+              ];
+              
+              if (index > 2) return null; // Only show up to 3 floating items
+
+              return (
+                <Link
+                  key={item._id}
+                  href={`/products/${item.slug}`}
+                  className={`absolute ${positions[index]} rounded-3xl overflow-hidden shadow-2xl border-4 border-white transition-transform duration-500 hover:scale-105 hover:z-40 group bg-white`}
+                >
+                  <img src={item.images?.[0] || ""} alt={item.name} className="w-full aspect-[4/5] object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 sm:p-6">
+                    <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300 w-full">
+                      <p className="text-white font-display font-bold text-sm sm:text-lg leading-tight line-clamp-1">{item.name}</p>
+                      <div className="flex items-center justify-between mt-1.5 w-full">
+                        <p className="text-amber-400 font-semibold text-xs sm:text-sm">${item.price.toFixed(2)}</p>
+                        <span className="bg-white/20 backdrop-blur-md rounded-full px-2 py-0.5 text-[10px] text-white">View</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+            
+            {showcaseItems.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="text-olive-700/50 font-bold">Loading collection...</p>
+              </div>
+            )}
+            
+            {/* Floating Badge */}
+            <div className="absolute top-1/2 left-[-5%] lg:left-[-10%] flex items-center gap-3 rounded-2xl bg-[#1c1c1c] text-white p-3.5 shadow-2xl border border-charcoal-700 animate-bounce z-50" style={{ animationDuration: '5s' }}>
+              <div className="flex -space-x-2">
+                <Star className="h-7 w-7 fill-amber-500 text-amber-500" />
+              </div>
+              <div className="text-[11px] font-bold leading-tight tracking-wide">
+                Premium<br/><span className="text-amber-500 font-medium">Quality Guaranteed</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

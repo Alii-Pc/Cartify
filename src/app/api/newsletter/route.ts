@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Newsletter } from "@/models/Newsletter";
+import { sendNewsletterConfirmationEmail, sendNewsletterAdminNotificationEmail } from "@/lib/mailer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +26,15 @@ export async function POST(req: NextRequest) {
     }
 
     await Newsletter.create({ email });
+
+    // Send emails
+    try {
+      await sendNewsletterConfirmationEmail(email);
+      await sendNewsletterAdminNotificationEmail(email);
+    } catch (emailError) {
+      console.error("Failed to send newsletter emails:", emailError);
+      // We don't fail the request if emails fail, just log it.
+    }
 
     // Optional: Emit a socket event to admin dashboard
     try {

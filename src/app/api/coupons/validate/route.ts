@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { calculateOrderTotals, VALID_COUPONS } from "@/lib/checkout-utils";
 import { errorResponse, successResponse, validateRequest } from "@/lib/api-utils";
+import { connectDB } from "@/lib/db";
+import { Coupon } from "@/models/Coupon";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +22,14 @@ export async function POST(req: NextRequest) {
     }
 
     const { promoCode, subtotal } = validation.data;
-    const totals = calculateOrderTotals(subtotal ?? 0, promoCode);
+    
+    let dbCoupon = null;
+    if (promoCode) {
+      await connectDB();
+      dbCoupon = await Coupon.findOne({ code: promoCode.trim().toUpperCase(), isActive: true });
+    }
+
+    const totals = calculateOrderTotals(subtotal ?? 0, promoCode, dbCoupon);
 
     if (totals.couponError) {
       return errorResponse(totals.couponError, 400);

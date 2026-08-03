@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { PromoBanner } from "@/components/layout/PromoBanner";
 
 const NAV_LINKS = [
   { href: "/products", label: "Products" },
@@ -65,8 +66,10 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-olive-100 bg-cream-50/80 backdrop-blur-md">
-      <nav className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4 lg:px-8">
+    <>
+      <PromoBanner />
+      <header className="sticky top-0 z-50 border-b border-olive-100 bg-cream-50/80 backdrop-blur-md">
+        <nav className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-4 lg:px-8">
         <Link
           href="/"
           className="font-display text-xl font-semibold text-olive-800 transition-opacity hover:opacity-90"
@@ -316,5 +319,6 @@ export function Navbar() {
         </div>
       )}
     </header>
+    </>
   );
 }

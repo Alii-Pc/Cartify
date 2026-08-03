@@ -10,7 +10,8 @@ import {
   ShoppingBag, 
   Store,
   X,
-  PackageOpen
+  PackageOpen,
+  Settings
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -30,6 +31,7 @@ export default function AdminSidebar({ isOpen, onClose, isMobile, isCollapsed }:
     { name: "Categories", href: "/admin/categories", icon: FolderTree },
     { name: "Inventory", href: "/admin/inventory", icon: PackageOpen },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
   const sidebarClasses = `

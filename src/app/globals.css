@@ -71,6 +71,52 @@
       transform: translateY(0);
     }
   }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translate(-50%, 150%);
+    }
+    to {
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(1deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-float-slow { animation: float 6s ease-in-out infinite; }
+  .animate-float-medium { animation: float 5s ease-in-out infinite reverse; }
+  .animate-float-fast { animation: float 4s ease-in-out infinite; }
 }
 
 /* ── Admin Dashboard ── */
@@ -112,7 +158,7 @@
   }
 
   .admin-input {
-    @apply w-full rounded-lg border border-olive-200 bg-white px-3 py-2 text-sm text-charcoal-800 placeholder:text-charcoal-400 transition-colors focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500;
+    @apply w-full rounded-lg border border-olive-200 bg-white px-3 py-2 text-sm text-charcoal-800 placeholder:text-charcoal-700/50 transition-colors focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500;
   }
 
   .admin-select {
