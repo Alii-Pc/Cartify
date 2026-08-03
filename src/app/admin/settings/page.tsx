@@ -165,7 +165,7 @@ export default function SettingsPage() {
           {promoBanner.isActive && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-charcoal-800">
-                Banner Message (e.g. 'Use SUMMER15 for 15% off!')
+                Banner Message (e.g. &apos;Use SUMMER15 for 15% off!&apos;)
               </label>
               <input
                 type="text"

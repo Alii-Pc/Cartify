@@ -63,7 +63,7 @@ export default function UnsubscribePage() {
                 Unsubscribe
               </h1>
               <p className="mt-2 text-sm text-charcoal-700/80">
-                We're sorry to see you go! Enter your email below to stop receiving newsletter updates.
+                We&apos;re sorry to see you go! Enter your email below to stop receiving newsletter updates.
               </p>
             </div>
             
