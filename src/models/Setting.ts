@@ -8,5 +8,5 @@ const settingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Setting =
+export const Setting: mongoose.Model<any> =
   mongoose.models.Setting || mongoose.model("Setting", settingSchema);

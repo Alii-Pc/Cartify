@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { calculateOrderTotals, VALID_COUPONS } from "@/lib/checkout-utils";
+import { calculateOrderTotals } from "@/lib/checkout-utils";
 import { errorResponse, successResponse, validateRequest } from "@/lib/api-utils";
 import { connectDB } from "@/lib/db";
 import { Coupon } from "@/models/Coupon";

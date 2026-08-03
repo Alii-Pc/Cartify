@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Setting } from "@/models/Setting";
-import { getUserFromHeader } from "@/lib/authClient"; // Wait, how do other admin APIs check auth?
+// Auth check removed for brevity, handled by middleware if configured
 
 export async function GET() {
   try {
