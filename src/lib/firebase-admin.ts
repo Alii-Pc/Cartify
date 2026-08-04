@@ -7,16 +7,27 @@ import fs from "fs";
 
 if (getApps().length === 0) {
   try {
-    // Read the service account file from the root
-    const serviceAccountPath = path.join(process.cwd(), "firebase-service-account.json");
-    if (fs.existsSync(serviceAccountPath)) {
-      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
+    let serviceAccount;
+    
+    // First check environment variable (for Vercel)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } 
+    // Fallback to local file for development
+    else {
+      const serviceAccountPath = path.join(process.cwd(), "firebase-service-account.json");
+      if (fs.existsSync(serviceAccountPath)) {
+        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
+      }
+    }
+
+    if (serviceAccount) {
       initializeApp({
         credential: cert(serviceAccount),
         databaseURL: `https://${serviceAccount.project_id}-default-rtdb.firebaseio.com`,
       });
     } else {
-      console.warn("firebase-service-account.json not found, skipping Admin SDK init");
+      console.warn("No Firebase Service Account found in ENV or file, skipping Admin SDK init");
     }
   } catch (error) {
     console.error("Firebase admin initialization error", error);
