@@ -55,6 +55,19 @@ export async function POST(req: NextRequest) {
       failureCount += response.failureCount;
     }
 
+    // Save global notification to database
+    await import("@/models/Notification").then(({ Notification }) => {
+      return Notification.create({
+        userId: null,
+        title,
+        body,
+        type: "promotion",
+        isRead: false,
+        readBy: [],
+        link: "/#deals" // Default link for promotions
+      });
+    }).catch(console.error);
+
     return successResponse({
       sent: successCount,
       failed: failureCount

@@ -51,6 +51,20 @@ export async function PUT(
     if (adminMessaging && parsed.data.status) {
       try {
         const user = await User.findById(order.userId);
+        
+        // Save to database
+        await import("@/models/Notification").then(({ Notification }) => {
+          return Notification.create({
+            userId: order.userId,
+            title: `Order Update #${order.orderNumber}`,
+            body: `Your order status is now: ${parsed.data.status?.toUpperCase()}`,
+            type: "order_update",
+            isRead: false,
+            readBy: [],
+            link: "/orders"
+          });
+        });
+
         if (user && user.fcmTokens && user.fcmTokens.length > 0) {
           const message = {
             notification: {

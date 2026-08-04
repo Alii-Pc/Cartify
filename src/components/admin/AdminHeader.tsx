@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Menu, PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { NotificationDrawer } from "@/components/notifications/NotificationDrawer";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -21,6 +22,8 @@ export default function AdminHeader({ onMenuClick, isCollapsed, onToggleCollapse
     if (pathname.includes("/admin/products")) return "Products Management";
     if (pathname.includes("/admin/categories")) return "Categories Management";
     if (pathname.includes("/admin/orders")) return "Orders Management";
+    if (pathname.includes("/admin/chat")) return "Live Chat Support";
+    if (pathname.includes("/admin/promotions")) return "Promotions";
     return "Admin Dashboard";
   };
 
@@ -46,7 +49,9 @@ export default function AdminHeader({ onMenuClick, isCollapsed, onToggleCollapse
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden sm:flex flex-col items-end">
+        <NotificationDrawer />
+        
+        <div className="hidden sm:flex flex-col items-end border-l border-olive-100 pl-4 ml-2">
           <span className="text-sm font-medium text-charcoal-900">{user?.name || 'Admin'}</span>
           <span className="text-xs text-charcoal-500 capitalize">{user?.role || 'admin'}</span>
         </div>

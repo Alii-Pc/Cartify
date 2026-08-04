@@ -21,6 +21,7 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useFCM } from "@/hooks/useFCM";
 import { PromoBanner } from "@/components/layout/PromoBanner";
+import { NotificationDrawer } from "@/components/notifications/NotificationDrawer";
 
 const NAV_LINKS = [
   { href: "/products", label: "Products" },
@@ -116,11 +117,14 @@ export function Navbar() {
               onClick={subscribeToNotifications}
               aria-label="Enable Notifications"
               title="Enable Push Notifications"
-              className="relative hidden md:flex rounded-full p-2.5 text-olive-800 transition-colors hover:bg-olive-100"
+              className="relative hidden md:flex rounded-full p-2.5 text-amber-600 transition-colors hover:bg-amber-100"
             >
               <Bell className="h-5 w-5" />
             </button>
           )}
+
+          {/* In-App Notifications Drawer */}
+          {isLoggedIn && <NotificationDrawer />}
 
           {/* Wishlist Link */}
           <Link
