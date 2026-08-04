@@ -57,7 +57,6 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-cream-50 font-sans">
-      <NotificationToast />
       <AdminSidebar 
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 

@@ -36,25 +36,6 @@ export async function POST(req: NextRequest) {
       // We don't fail the request if emails fail, just log it.
     }
 
-    // Optional: Emit a socket event to admin dashboard
-    try {
-      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/internal/socket`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "admin_notification",
-          room: "admin",
-          data: {
-            title: "New Subscriber",
-            message: `${email} just subscribed to the newsletter.`,
-            time: new Date().toISOString(),
-          },
-        }),
-      }).catch(() => {});
-    } catch (e) {
-      // ignore socket failure
-    }
-
     return NextResponse.json({ success: true, message: "Successfully subscribed!" }, { status: 201 });
   } catch (error) {
     console.error("Newsletter subscription error:", error);

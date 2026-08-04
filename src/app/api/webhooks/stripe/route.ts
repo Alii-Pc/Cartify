@@ -60,38 +60,6 @@ export async function POST(req: NextRequest) {
             console.error("Failed to send order emails from webhook:", mailErr);
           }
 
-          // Emit real-time events
-          try {
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-            
-            // Notify user of order update
-            fetch(`${baseUrl}/api/internal/socket`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                event: "order_updated",
-                room: `order_${order._id.toString()}`,
-                data: order.toObject(),
-              }),
-            }).catch(() => {});
-
-            // Notify admin of new paid order
-            fetch(`${baseUrl}/api/internal/socket`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                event: "admin_notification",
-                room: "admin",
-                data: {
-                  title: "New Order Paid",
-                  message: `Order ${order.orderNumber} has been paid successfully.`,
-                  time: new Date().toISOString(),
-                },
-              }),
-            }).catch(() => {});
-          } catch (e) {
-            // ignore
-          }
         }
       }
     } else if (event.type === "checkout.session.expired") {
