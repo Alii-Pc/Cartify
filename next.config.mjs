@@ -14,12 +14,6 @@ const nextConfig = {
     ],
   },
   serverExternalPackages: ['firebase-admin', 'jwks-rsa', 'jose'],
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals = [...(config.externals || []), 'firebase-admin', 'jwks-rsa', 'jose'];
-    }
-    return config;
-  },
 };
 
 export default nextConfig;
