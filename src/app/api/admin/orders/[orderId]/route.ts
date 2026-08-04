@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Order } from "@/models/Order";
+import { User } from "@/models/User";
 import { requireAdmin, successResponse, errorResponse } from "@/lib/api-utils";
+import { adminMessaging } from "@/lib/firebase-admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +46,26 @@ export async function PUT(
     }
 
     await order.save();
+
+    // Send push notification
+    if (adminMessaging && parsed.data.status) {
+      try {
+        const user = await User.findById(order.userId);
+        if (user && user.fcmTokens && user.fcmTokens.length > 0) {
+          const message = {
+            notification: {
+              title: `Order Update #${order.orderNumber}`,
+              body: `Your order status is now: ${parsed.data.status.toUpperCase()}`,
+            },
+            tokens: user.fcmTokens,
+          };
+          const response = await adminMessaging.sendEachForMulticast(message);
+          console.log("FCM Notification sent:", response.successCount);
+        }
+      } catch (err) {
+        console.error("Failed to send FCM order update:", err);
+      }
+    }
 
     try {
       fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/internal/socket`, {

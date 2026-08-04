@@ -11,7 +11,9 @@ import {
   Store,
   X,
   PackageOpen,
-  Settings
+  Settings,
+  Bell,
+  MessageSquare
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -31,6 +33,8 @@ export default function AdminSidebar({ isOpen, onClose, isMobile, isCollapsed }:
     { name: "Categories", href: "/admin/categories", icon: FolderTree },
     { name: "Inventory", href: "/admin/inventory", icon: PackageOpen },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { name: "Chat", href: "/admin/chat", icon: MessageSquare },
+    { name: "Promotions", href: "/admin/promotions", icon: Bell },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 

@@ -14,10 +14,12 @@ import {
   LayoutDashboard,
   PackageCheck,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useFCM } from "@/hooks/useFCM";
 import { PromoBanner } from "@/components/layout/PromoBanner";
 
 const NAV_LINKS = [
@@ -39,6 +41,7 @@ export function Navbar() {
   const { user, isLoggedIn, logout } = useAuth();
   const { itemCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const { fcmToken, subscribeToNotifications } = useFCM();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -107,6 +110,18 @@ export function Navbar() {
         </div>
 
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          {/* Notifications Button */}
+          {!fcmToken && (
+            <button
+              onClick={subscribeToNotifications}
+              aria-label="Enable Notifications"
+              title="Enable Push Notifications"
+              className="relative hidden md:flex rounded-full p-2.5 text-olive-800 transition-colors hover:bg-olive-100"
+            >
+              <Bell className="h-5 w-5" />
+            </button>
+          )}
+
           {/* Wishlist Link */}
           <Link
             href="/wishlist"
