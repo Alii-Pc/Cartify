@@ -6,7 +6,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader } from "@/components/ui/Loader";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
-import { NotificationToast } from "@/components/admin/NotificationToast";
 
 export default function AdminLayout({
   children,
