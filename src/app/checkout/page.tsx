@@ -18,7 +18,7 @@ import {
   AlertCircle,
   Tag,
 } from "lucide-react";
-import { calculateOrderTotals } from "@/lib/checkout-utils";
+import { calculateOrderTotals, CouponDetail } from "@/lib/checkout-utils";
 import type { UserAddress } from "@/types";
 
 function CheckoutForm() {
@@ -54,7 +54,37 @@ function CheckoutForm() {
   const initialPromo = searchParams.get("promo");
   const [promoCode, setPromoCode] = useState(initialPromo || "");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(initialPromo || null);
+  const [appliedCouponData, setAppliedCouponData] = useState<CouponDetail | null>(null);
   const [promoError, setPromoError] = useState("");
+
+  // Validate initial promo if exists
+  useEffect(() => {
+    if (initialPromo && subtotal > 0 && !appliedCouponData) {
+      validatePromo(initialPromo, subtotal);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPromo, subtotal]);
+
+  const validatePromo = async (code: string, currentSubtotal: number) => {
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode: code, subtotal: currentSubtotal }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setAppliedPromo(code);
+        setAppliedCouponData(json.data.coupon);
+      } else {
+        setAppliedPromo(null);
+        setAppliedCouponData(null);
+        setPromoError(json.message || "Invalid promo code");
+      }
+    } catch {
+      setPromoError("Error validating promo code");
+    }
+  };
 
   // Place Order States
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -252,8 +282,11 @@ function CheckoutForm() {
 
       if (res.ok && json.success) {
         setAppliedPromo(code);
+        setAppliedCouponData(json.data.coupon);
         addToast("success", json.message || `Coupon '${code}' applied!`);
       } else {
+        setAppliedPromo(null);
+        setAppliedCouponData(null);
         setPromoError(json.message || "Invalid or expired promo code.");
         addToast("error", json.message || "Invalid promo code");
       }
@@ -263,7 +296,7 @@ function CheckoutForm() {
   };
 
   // ── Calculate Cost Breakdown ──
-  const totals = calculateOrderTotals(subtotal, appliedPromo);
+  const totals = calculateOrderTotals(subtotal, appliedPromo, appliedCouponData);
   const { discount, shipping, tax, total: grandTotal } = totals;
 
   // ── Place Order Action ──

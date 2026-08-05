@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/components/ui/Toast";
-import { calculateOrderTotals } from "@/lib/checkout-utils";
+import { calculateOrderTotals, CouponDetail } from "@/lib/checkout-utils";
 import {
   Trash2,
   Minus,
@@ -24,10 +24,11 @@ export default function CartPage() {
   const { addToast } = useToast();
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [appliedCouponData, setAppliedCouponData] = useState<CouponDetail | null>(null);
   const [promoError, setPromoError] = useState("");
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
-  const totals = calculateOrderTotals(subtotal, appliedPromo);
+  const totals = calculateOrderTotals(subtotal, appliedPromo, appliedCouponData);
   const { discount, shipping, tax, total: grandTotal, appliedCoupon } = totals;
 
   const handleApplyPromo = async (e: React.FormEvent) => {
@@ -53,8 +54,11 @@ export default function CartPage() {
 
       if (res.ok && json.success) {
         setAppliedPromo(code);
+        setAppliedCouponData(json.data.coupon);
         addToast("success", json.message || `Coupon '${code}' applied!`);
       } else {
+        setAppliedPromo(null);
+        setAppliedCouponData(null);
         setPromoError(json.message || "Invalid or expired promo code.");
         addToast("error", json.message || "Invalid promo code");
       }
@@ -252,7 +256,10 @@ export default function CartPage() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setAppliedPromo(null)}
+                      onClick={() => {
+                        setAppliedPromo(null);
+                        setAppliedCouponData(null);
+                      }}
                       className="text-emerald-700 hover:text-emerald-900 text-[10px] font-bold uppercase underline"
                     >
                       Remove

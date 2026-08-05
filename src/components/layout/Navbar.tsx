@@ -111,17 +111,6 @@ export function Navbar() {
         </div>
 
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-          {/* Notifications Button */}
-          {!fcmToken && (
-            <button
-              onClick={subscribeToNotifications}
-              aria-label="Enable Notifications"
-              title="Enable Push Notifications"
-              className="relative hidden md:flex rounded-full p-2.5 text-amber-600 transition-colors hover:bg-amber-100"
-            >
-              <Bell className="h-5 w-5" />
-            </button>
-          )}
 
           {/* In-App Notifications Drawer */}
           {isLoggedIn && <NotificationDrawer />}

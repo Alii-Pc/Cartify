@@ -1,10 +1,29 @@
 import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import { Notification } from "@/models/Notification";
 import { requireAdmin, successResponse, errorResponse } from "@/lib/api-utils";
 import { adminMessaging } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  try {
+    const auth = await requireAdmin(req);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    await connectDB();
+    
+    const promotions = await Notification.find({ type: "promotion", userId: null })
+      .sort({ createdAt: -1 })
+      .lean();
+      
+    return successResponse(promotions);
+  } catch (error) {
+    console.error("Fetch Promotions Error:", error);
+    return errorResponse("Failed to fetch promotions", 500);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {

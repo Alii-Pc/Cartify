@@ -1,7 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { Bell, Send, AlertCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, Send, AlertCircle, Trash2, Loader2, Calendar } from "lucide-react";
+
+type Promotion = {
+  _id: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  readBy: string[];
+};
 
 export default function AdminPromotionsPage() {
   const [title, setTitle] = useState("");
@@ -9,6 +17,47 @@ export default function AdminPromotionsPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [results, setResults] = useState<{ sent: number; failed: number } | null>(null);
+  
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [loadingPromotions, setLoadingPromotions] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPromotions();
+  }, []);
+
+  const fetchPromotions = async () => {
+    try {
+      const res = await fetch("/api/admin/promotions");
+      const data = await res.json();
+      if (data.success) {
+        setPromotions(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch promotions", error);
+    } finally {
+      setLoadingPromotions(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this promotion? It will be removed from users' notifications.")) return;
+    
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/promotions/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setPromotions(prev => prev.filter(p => p._id !== id));
+      } else {
+        alert("Failed to delete promotion");
+      }
+    } catch (error) {
+      console.error("Error deleting promotion", error);
+      alert("Error deleting promotion");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +81,7 @@ export default function AdminPromotionsPage() {
         setResults(data.data);
         setTitle("");
         setBody("");
+        fetchPromotions();
       } else {
         setStatus("error");
         setMessage(data.message || "Failed to send broadcast");
@@ -136,6 +186,55 @@ export default function AdminPromotionsPage() {
              </div>
            </div>
         </div>
+      </div>
+
+      {/* Past Promotions List */}
+      <div className="rounded-2xl border border-olive-100 bg-white p-6 shadow-sm mt-8">
+        <h2 className="text-lg font-bold text-charcoal-900 mb-6">Past Promotions</h2>
+        
+        {loadingPromotions ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-olive-600" />
+          </div>
+        ) : promotions.length === 0 ? (
+          <div className="text-center p-8 text-charcoal-500 bg-cream-50 rounded-xl border border-dashed border-olive-200">
+            No promotions sent yet.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {promotions.map((promo) => (
+              <div key={promo._id} className="flex items-start justify-between gap-4 p-4 rounded-xl border border-olive-100 bg-white hover:border-olive-200 hover:shadow-sm transition-all group">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                    <Bell className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-charcoal-900">{promo.title}</h3>
+                    <p className="text-sm text-charcoal-600 mt-1 line-clamp-2">{promo.body}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs font-medium text-charcoal-400">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {new Date(promo.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDelete(promo._id)}
+                  disabled={deletingId === promo._id}
+                  title="Delete Promotion"
+                  className="shrink-0 p-2 text-charcoal-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none disabled:opacity-50 opacity-0 group-hover:opacity-100"
+                >
+                  {deletingId === promo._id ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

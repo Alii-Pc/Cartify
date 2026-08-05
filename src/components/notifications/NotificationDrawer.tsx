@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Bell, X, CheckCircle, Package, Info, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useFCM } from "@/hooks/useFCM";
 
 type NotificationType = {
   _id: string;
@@ -17,6 +18,7 @@ type NotificationType = {
 
 export function NotificationDrawer() {
   const { isLoggedIn, user } = useAuth();
+  const { fcmToken, subscribeToNotifications } = useFCM();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -113,22 +115,29 @@ export function NotificationDrawer() {
 
       {/* Dropdown / Drawer */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-olive-100 bg-white shadow-xl ring-1 ring-black/5 animate-fadeIn z-[100] flex flex-col overflow-hidden max-h-[80vh]">
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl border border-olive-200/60 bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-black/5 animate-fadeIn z-[100] flex flex-col overflow-hidden max-h-[85vh] transition-all">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-olive-100 bg-cream-50 px-4 py-3">
-            <h3 className="font-bold text-charcoal-900">Notifications</h3>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between border-b border-olive-100/80 bg-gradient-to-r from-cream-50/90 to-white/90 px-5 py-4">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-olive-900 text-lg">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="flex h-5 items-center justify-center rounded-full bg-olive-100 px-2 text-xs font-bold text-olive-800">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-xs font-semibold text-olive-600 hover:text-olive-800 transition-colors"
+                  className="text-xs font-semibold text-olive-600 hover:text-olive-800 transition-colors bg-white px-2 py-1 rounded-md border border-olive-100 shadow-sm"
                 >
                   Mark all read
                 </button>
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-charcoal-400 hover:text-charcoal-700 transition-colors"
+                className="rounded-full p-1 text-charcoal-400 hover:bg-cream-100 hover:text-charcoal-700 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -136,20 +145,20 @@ export function NotificationDrawer() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto bg-white">
+          <div className="flex-1 overflow-y-auto bg-transparent custom-scrollbar">
             {loading && notifications.length === 0 ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-6 w-6 animate-spin text-olive-600" />
+              <div className="flex items-center justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-olive-600" />
               </div>
             ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-charcoal-400 space-y-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-100">
-                  <Bell className="h-6 w-6 text-olive-300" />
+              <div className="flex flex-col items-center justify-center p-10 text-center text-charcoal-400 space-y-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cream-100 to-olive-50 shadow-inner">
+                  <Bell className="h-8 w-8 text-olive-300" />
                 </div>
-                <p className="text-sm">You have no notifications yet.</p>
+                <p className="text-sm font-medium text-charcoal-500">You&apos;re all caught up!</p>
               </div>
             ) : (
-              <div className="divide-y divide-olive-50">
+              <div className="divide-y divide-olive-50/50 p-2 space-y-1">
                 {notifications.map((notif) => {
                   let Icon = Info;
                   let iconColor = "text-blue-600";
@@ -166,25 +175,25 @@ export function NotificationDrawer() {
                   }
 
                   const content = (
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bgColor} ${iconColor}`}>
-                        <Icon className="h-4 w-4" />
+                    <div className="flex items-start gap-3.5">
+                      <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${bgColor} ${iconColor} ring-4 ring-white shadow-sm`}>
+                        <Icon className="h-4.5 w-4.5" />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pt-0.5">
                         <div className="flex items-start justify-between gap-2">
-                          <p className={`text-sm font-semibold truncate ${notif.isRead ? "text-charcoal-600" : "text-charcoal-900"}`}>
+                          <p className={`text-sm font-semibold truncate ${notif.isRead ? "text-charcoal-600" : "text-olive-900"}`}>
                             {notif.title}
                           </p>
-                          <span className="text-[10px] font-medium text-charcoal-400 whitespace-nowrap pt-0.5">
-                            {new Date(notif.createdAt).toLocaleDateString()}
+                          <span className="text-[10px] font-bold text-charcoal-400 whitespace-nowrap uppercase tracking-wider">
+                            {new Date(notif.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                           </span>
                         </div>
-                        <p className={`text-xs mt-1 line-clamp-2 ${notif.isRead ? "text-charcoal-500" : "text-charcoal-700"}`}>
+                        <p className={`text-xs mt-1.5 leading-relaxed line-clamp-2 ${notif.isRead ? "text-charcoal-500" : "text-charcoal-700"}`}>
                           {notif.body}
                         </p>
                       </div>
                       {!notif.isRead && (
-                        <div className="flex h-2 w-2 shrink-0 items-center justify-center rounded-full bg-olive-600 mt-2"></div>
+                        <div className="flex h-2.5 w-2.5 shrink-0 items-center justify-center rounded-full bg-amber-500 mt-2 shadow-sm shadow-amber-200"></div>
                       )}
                     </div>
                   );
@@ -194,7 +203,7 @@ export function NotificationDrawer() {
                       href={notif.link}
                       key={notif._id}
                       onClick={() => markAsRead(notif._id, notif.isRead)}
-                      className={`block p-4 transition-colors hover:bg-cream-50 ${!notif.isRead ? "bg-olive-50/30" : ""}`}
+                      className={`block p-3 rounded-xl transition-all duration-200 hover:bg-cream-50 hover:shadow-sm ${!notif.isRead ? "bg-olive-50/40 border border-olive-100/50" : "border border-transparent"}`}
                     >
                       {content}
                     </Link>
@@ -202,7 +211,7 @@ export function NotificationDrawer() {
                     <button
                       key={notif._id}
                       onClick={() => markAsRead(notif._id, notif.isRead)}
-                      className={`w-full text-left block p-4 transition-colors hover:bg-cream-50 ${!notif.isRead ? "bg-olive-50/30" : ""}`}
+                      className={`w-full text-left block p-3 rounded-xl transition-all duration-200 hover:bg-cream-50 hover:shadow-sm ${!notif.isRead ? "bg-olive-50/40 border border-olive-100/50" : "border border-transparent"}`}
                     >
                       {content}
                     </button>
@@ -211,6 +220,24 @@ export function NotificationDrawer() {
               </div>
             )}
           </div>
+          
+          {/* Push Notifications Prompt Footer */}
+          {!fcmToken && (
+            <div className="border-t border-olive-100/80 bg-cream-50/50 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-olive-900">Never miss an update</p>
+                  <p className="text-[10px] text-charcoal-500 mt-0.5">Enable push notifications for instant alerts.</p>
+                </div>
+                <button
+                  onClick={subscribeToNotifications}
+                  className="shrink-0 rounded-full bg-olive-800 px-3 py-1.5 text-xs font-bold text-cream-50 hover:bg-olive-900 transition-colors shadow-sm"
+                >
+                  Enable
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
