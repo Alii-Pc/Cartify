@@ -189,7 +189,7 @@ export function ChatWidget() {
                 </div>
                 <div>
                   <p className="font-semibold text-charcoal-700">How can we help?</p>
-                  <p className="text-xs mt-1 max-w-[200px]">Send us a message and we'll get right back to you.</p>
+                  <p className="text-xs mt-1 max-w-[200px]">Send us a message and we&apos;ll get right back to you.</p>
                 </div>
               </div>
             ) : (
