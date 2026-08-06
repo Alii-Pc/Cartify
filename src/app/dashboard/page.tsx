@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { verifyToken, AUTH_COOKIE_NAME } from "@/lib/jwt";
 import { LogoutButton } from "@/components/auth/LogoutButton";
-import { ShieldCheck, Mail, Calendar } from "lucide-react";
+import DashboardTabs from "./DashboardTabs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -53,39 +53,16 @@ export default async function DashboardPage() {
           verified login.
         </p>
 
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <div className="card-surface p-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-olive-100 text-olive-700">
-              <Mail className="h-5 w-5" />
-            </div>
-            <p className="mt-4 text-sm text-charcoal-700/60">Email</p>
-            <p className="mt-1 font-medium text-charcoal-900">{user.email}</p>
-          </div>
-
-          <div className="card-surface p-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-olive-100 text-olive-700">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <p className="mt-4 text-sm text-charcoal-700/60">Verification</p>
-            <p className="mt-1 font-medium text-charcoal-900">
-              {user.isVerified ? "Verified" : "Not verified"}
-            </p>
-          </div>
-
-          <div className="card-surface p-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-olive-100 text-olive-700">
-              <Calendar className="h-5 w-5" />
-            </div>
-            <p className="mt-4 text-sm text-charcoal-700/60">Member since</p>
-            <p className="mt-1 font-medium text-charcoal-900">
-              {new Date(user.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </div>
-        </div>
+        <DashboardTabs 
+          user={{
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            isVerified: user.isVerified,
+            createdAt: user.createdAt.toISOString()
+          }} 
+        />
       </main>
     </div>
   );

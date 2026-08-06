@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 export interface IUser extends Document {
   name: string;
   email: string;
+  phone?: string;
   password: string;
   role: "user" | "admin";
   isVerified: boolean;
@@ -35,6 +36,10 @@ const UserSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please provide a valid email"],
+    },
+    phone: {
+      type: String,
+      trim: true,
     },
     password: {
       type: String,
