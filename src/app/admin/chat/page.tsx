@@ -342,7 +342,7 @@ export default function AdminChatPage() {
           <div className="flex-1 overflow-y-auto p-6 pb-28 space-y-6 bg-white relative">
             {messages.map((msg, index) => {
               const isAdmin = msg.sender === "admin";
-              const showAvatar = !isAdmin && (index === 0 || messages[index - 1].sender === "admin");
+              const showAvatar = !isAdmin && (index === 0 || messages[index - 1]?.sender === "admin");
 
               return (
                 <div key={msg.id} className={`flex flex-col ${isAdmin ? "items-end" : "items-start"} group`}>

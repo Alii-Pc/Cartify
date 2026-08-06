@@ -195,7 +195,7 @@ export function ChatWidget() {
             ) : (
               messages.map((msg, index) => {
                 const isUser = msg.sender === "user";
-                const showAvatar = !isUser && (index === 0 || messages[index - 1].sender === "user");
+                const showAvatar = !isUser && (index === 0 || messages[index - 1]?.sender === "user");
                 
                 return (
                   <div key={msg.id} className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
