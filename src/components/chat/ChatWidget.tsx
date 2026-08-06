@@ -297,7 +297,7 @@ export function ChatWidget() {
             <MessageSquare className="h-6 w-6 relative z-10" />
             
             {/* Dynamic Unread Badge */}
-            {messages.length > 0 && messages[messages.length - 1].sender === "admin" && (
+            {messages.length > 0 && messages[messages.length - 1]?.sender === "admin" && (
               <div className="absolute top-0 right-0 h-3.5 w-3.5 bg-red-500 border-2 border-white rounded-full z-20 animate-bounce shadow-sm" />
             )}
           </button>
