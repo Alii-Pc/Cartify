@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Mail, Phone, MapPin, MessageSquare, CheckCircle2, ChevronDown, AlertCircle } from "lucide-react";
-
+import { ChatWidget } from "@/components/chat/ChatWidget";
 const FAQS = [
   {
     question: "How long does shipping normally take?",
@@ -139,7 +139,11 @@ export default function ContactPage() {
           <span className="text-xs font-semibold text-charcoal-800">Portland, OR 97201</span>
         </div>
 
-        <div className="card-surface p-5 flex flex-col items-center text-center space-y-3 sm:p-6">
+        <button 
+          type="button"
+          onClick={() => window.dispatchEvent(new Event('open-live-chat'))}
+          className="card-surface p-5 flex flex-col items-center text-center space-y-3 sm:p-6 cursor-pointer hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-olive-500 hover:scale-[1.02]"
+        >
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-olive-100 text-olive-800 sm:h-12 sm:w-12">
             <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
@@ -148,7 +152,7 @@ export default function ContactPage() {
           <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Online Now
           </span>
-        </div>
+        </button>
       </div>
 
       {/* Main Section: Form + FAQ */}
@@ -336,6 +340,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+      <ChatWidget />
     </div>
   );
 }

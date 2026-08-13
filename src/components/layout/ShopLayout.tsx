@@ -1,7 +1,7 @@
 import React from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { ChatWidget } from "@/components/chat/ChatWidget";
+import { AIChatWidget } from "@/components/chat/AIChatWidget";
 
 export function ShopLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +9,7 @@ export function ShopLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
-      <ChatWidget />
+      <AIChatWidget />
     </div>
   );
 }
