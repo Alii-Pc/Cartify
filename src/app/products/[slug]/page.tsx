@@ -7,6 +7,8 @@ import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
+import { ProductReviews } from "@/components/products/ProductReviews";
 import {
   ShoppingCart,
   Star,
@@ -36,6 +38,7 @@ export default function ProductDetailsPage() {
 
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
   const inWishlist = product ? isInWishlist(product._id) : false;
 
   useEffect(() => {
@@ -370,6 +373,11 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Product Reviews */}
+      {product && (
+        <ProductReviews productId={product._id} currentUser={user} />
+      )}
 
       {/* Related Products Grid */}
       {relatedProducts && relatedProducts.length > 0 && (

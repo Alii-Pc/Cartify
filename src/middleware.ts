@@ -25,6 +25,27 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Basic CSRF Protection for state-changing API requests
+  if (
+    pathname.startsWith('/api/') &&
+    ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)
+  ) {
+    const origin = req.headers.get("origin");
+    const referer = req.headers.get("referer");
+    // In production, you would strictly check against process.env.NEXT_PUBLIC_SITE_URL
+    // For now, ensure origin or referer is present and matches the host
+    const host = req.headers.get("host");
+    const isSafeOrigin = origin ? origin.includes(host || "") : referer ? referer.includes(host || "") : false;
+    
+    // We only enforce this if token is valid (it's an authenticated request) or if we strictly want it for all
+    if (origin && !isSafeOrigin) {
+      return new NextResponse(
+        JSON.stringify({ success: false, message: "CSRF token mismatch or invalid origin" }),
+        { status: 403, headers: { "content-type": "application/json" } }
+      );
+    }
+  }
+
   const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
   const valid = token ? await isTokenValid(token) : false;
 
@@ -52,6 +73,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/checkout/:path*", "/orders/:path*", "/payment/:path*", "/login", "/signup", "/api/webhooks/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/checkout/:path*", "/orders/:path*", "/payment/:path*", "/login", "/signup", "/api/:path*"],
 };
 

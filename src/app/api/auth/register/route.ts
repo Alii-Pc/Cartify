@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { signupSchema } from "@/lib/validations/auth";
 import { sendVerificationEmail } from "@/lib/mailer";
+import { rateLimit } from "@/lib/rate-limit";
 import type { ApiResponse, SafeUser } from "@/types";
 
 function generateOtp(): string {
@@ -11,6 +12,14 @@ function generateOtp(): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitCheck = rateLimit(req);
+    if (!rateLimitCheck.success) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, message: rateLimitCheck.message },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = signupSchema.safeParse(body);
 

@@ -13,7 +13,8 @@ import {
   PackageOpen,
   Settings,
   Bell,
-  MessageSquare
+  MessageSquare,
+  Star
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -35,6 +36,7 @@ export default function AdminSidebar({ isOpen, onClose, isMobile, isCollapsed }:
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Chat", href: "/admin/chat", icon: MessageSquare },
     { name: "Promotions", href: "/admin/promotions", icon: Bell },
+    { name: "Reviews", href: "/admin/reviews", icon: Star },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 

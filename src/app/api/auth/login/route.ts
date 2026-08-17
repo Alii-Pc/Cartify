@@ -3,10 +3,19 @@ import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { loginSchema } from "@/lib/validations/auth";
 import { signToken, AUTH_COOKIE_NAME } from "@/lib/jwt";
+import { rateLimit } from "@/lib/rate-limit";
 import type { ApiResponse, SafeUser } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitCheck = rateLimit(req);
+    if (!rateLimitCheck.success) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, message: rateLimitCheck.message },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
 
@@ -71,7 +80,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
