@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Star, Trash2, Edit2, CheckCircle2 } from "lucide-react";
-import { formatDistanceToNow } from "date-string"; // Wait, I don't know if date-fns is installed. Let's just use standard Date formatting.
 
 interface Review {
   _id: string;
