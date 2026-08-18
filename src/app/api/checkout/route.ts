@@ -6,7 +6,7 @@ import { Order } from "@/models/Order";
 import { Coupon } from "@/models/Coupon";
 import { authenticateUser, successResponse, errorResponse, validateRequest } from "@/lib/api-utils";
 import { createOrderSchema } from "@/lib/validations/order";
-import { calculateOrderTotals } from "@/lib/checkout-utils";
+import { calculateOrderTotals, CouponDetail } from "@/lib/checkout-utils";
 import { stripe } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
@@ -80,12 +80,12 @@ export async function POST(req: NextRequest) {
       return errorResponse("The products in your cart are no longer available.", 400);
     }
 
-    let dbCoupon = null;
+    let dbCoupon: CouponDetail | null = null;
     if (promoCode && promoCode.trim()) {
-      dbCoupon = await Coupon.findOne({
+      dbCoupon = (await Coupon.findOne({
         code: promoCode.trim().toUpperCase(),
         isActive: true,
-      }).lean();
+      }).lean()) as CouponDetail | null;
     }
 
     const totals = calculateOrderTotals(subtotal, promoCode, dbCoupon);
