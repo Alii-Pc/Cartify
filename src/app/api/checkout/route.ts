@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Cart } from "@/models/Cart";
 import { Product } from "@/models/Product";
 import { Order } from "@/models/Order";
+import { Coupon } from "@/models/Coupon";
 import { authenticateUser, successResponse, errorResponse, validateRequest } from "@/lib/api-utils";
 import { createOrderSchema } from "@/lib/validations/order";
 import { calculateOrderTotals } from "@/lib/checkout-utils";
@@ -79,7 +80,15 @@ export async function POST(req: NextRequest) {
       return errorResponse("The products in your cart are no longer available.", 400);
     }
 
-    const totals = calculateOrderTotals(subtotal, promoCode);
+    let dbCoupon = null;
+    if (promoCode && promoCode.trim()) {
+      dbCoupon = await Coupon.findOne({
+        code: promoCode.trim().toUpperCase(),
+        isActive: true,
+      }).lean();
+    }
+
+    const totals = calculateOrderTotals(subtotal, promoCode, dbCoupon);
     const { discount, shipping, tax, total } = totals;
 
     const newOrder = new Order({
