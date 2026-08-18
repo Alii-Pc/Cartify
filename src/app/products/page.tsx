@@ -150,7 +150,7 @@ function ProductsCatalogContent() {
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-700/40" />
           <input
-            type="search"
+            type="text"
             placeholder="Search catalog by name or keyword..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

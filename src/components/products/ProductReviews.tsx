@@ -27,7 +27,7 @@ export function ProductReviews({ productId, currentUser }: ProductReviewsProps) 
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const fetchReviews = async () => {
+  const fetchReviews = React.useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/reviews?productId=${productId}`);
@@ -42,13 +42,13 @@ export function ProductReviews({ productId, currentUser }: ProductReviewsProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
 
   useEffect(() => {
     if (productId) {
       fetchReviews();
     }
-  }, [productId]);
+  }, [productId, fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -100,6 +100,8 @@ export function parseFilterParams(url: URL) {
     filter.$or = [
       { name: { $regex: q, $options: "i" } },
       { description: { $regex: q, $options: "i" } },
+      { category: { $regex: q, $options: "i" } },
+      { tag: { $regex: q, $options: "i" } },
     ];
   }
 

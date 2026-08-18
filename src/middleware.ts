@@ -34,7 +34,7 @@ export async function middleware(req: NextRequest) {
     const referer = req.headers.get("referer");
     // In production, you would strictly check against process.env.NEXT_PUBLIC_SITE_URL
     // For now, ensure origin or referer is present and matches the host
-    const host = req.headers.get("host");
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
     const isSafeOrigin = origin ? origin.includes(host || "") : referer ? referer.includes(host || "") : false;
     
     // We only enforce this if token is valid (it's an authenticated request) or if we strictly want it for all

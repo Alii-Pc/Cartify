@@ -5,7 +5,8 @@ import { MessageSquare, X, Send, Paperclip } from "lucide-react";
 import { database } from "@/lib/firebase";
 import { ref, onValue, push, set, serverTimestamp } from "firebase/database";
 import { useAuth } from "@/context/AuthContext";
-import EmojiPicker from 'emoji-picker-react';
+import dynamic from 'next/dynamic';
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 type Message = {
   id: string;

@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { database } from "@/lib/firebase";
 import { ref, onValue, push, set, serverTimestamp, remove, update } from "firebase/database";
 import { Send, User as UserIcon, Clock, CheckCircle, MessageSquare, Plus, X, Edit2, Trash2 } from "lucide-react";
-import EmojiPicker from 'emoji-picker-react';
+import dynamic from 'next/dynamic';
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 type ChatMeta = {
   lastMessage: string;

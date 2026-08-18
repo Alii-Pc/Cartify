@@ -3,6 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 import { connectDB } from "@/lib/db";
 import { Product } from "@/models/Product";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -28,9 +30,6 @@ export async function POST(req: Request) {
     // Connect to database to fetch context
     await connectDB();
 
-    // Fetch some products to provide context for recommendations
-    // In a larger app, you would use vector search or Function Calling.
-    // For this prototype, we'll feed a summary of products into the system prompt.
     const products = await Product.find({}).select("name price category description tag -_id").limit(30);
     const productContext = products
       .map(
@@ -49,7 +48,6 @@ ${productContext}
 
 If the user asks about something not in the inventory, politely inform them that you only have information about Cartify products.`;
 
-    // Construct the conversation history for Gemini
     const contents = history.map((m: any) => ({
       role: m.role === "user" ? "user" : "model",
       parts: [{ text: m.content }],
@@ -57,7 +55,7 @@ If the user asks about something not in the inventory, politely inform them that
     contents.push({ role: "user", parts: [{ text: message }] });
 
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-3.6-flash",
       contents: contents,
       config: {
         systemInstruction: systemInstruction,

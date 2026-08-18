@@ -112,10 +112,10 @@ export function AIChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start font-sans">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 flex h-[650px] max-h-[85vh] w-[380px] max-w-[90vw] flex-col overflow-hidden rounded-[28px] bg-[#F9F9F9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] ring-1 ring-black/5 animate-slideUp transition-all origin-bottom-left relative">
+        <div className="mb-4 flex h-[650px] max-h-[85vh] w-[380px] max-w-[90vw] flex-col overflow-hidden rounded-[28px] bg-[#F9F9F9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] ring-1 ring-black/5 animate-slideUp transition-all origin-bottom-right relative">
           
           {/* Glassy Header */}
           <div className="flex items-center justify-between p-5 border-b border-black/[0.03] z-20 backdrop-blur-xl bg-white/70 sticky top-0">
