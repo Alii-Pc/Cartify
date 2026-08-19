@@ -48,11 +48,27 @@ ${productContext}
 
 If the user asks about something not in the inventory, politely inform them that you only have information about Cartify products.`;
 
-    const contents = history.map((m: any) => ({
+    // Gemini API strictly requires alternating roles (user, model, user, model)
+    // We must squash consecutive messages of the same role to prevent 500 errors
+    const rawContents = history.map((m: any) => ({
       role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
+      text: m.content || "",
     }));
-    contents.push({ role: "user", parts: [{ text: message }] });
+    rawContents.push({ role: "user", text: message });
+
+    const contents: any[] = [];
+    for (const msg of rawContents) {
+      if (contents.length > 0 && contents[contents.length - 1].role === msg.role) {
+        // Same role as previous message, append to it
+        contents[contents.length - 1].parts[0].text += `\n\n${msg.text}`;
+      } else {
+        // New role, add new message object
+        contents.push({
+          role: msg.role,
+          parts: [{ text: msg.text }],
+        });
+      }
+    }
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
