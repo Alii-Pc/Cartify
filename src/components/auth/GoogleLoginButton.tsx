@@ -14,7 +14,7 @@ interface GoogleLoginButtonProps {
 
 export function GoogleLoginButton({ action, onSuccess }: GoogleLoginButtonProps) {
   const { addToast } = useToast();
-  const { fetchUser } = useAuth();
+  const { refreshUser } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -26,17 +26,22 @@ export function GoogleLoginButton({ action, onSuccess }: GoogleLoginButtonProps)
       if (action === "login") {
         const res = await loginWithGoogle(credentialResponse.credential);
         if (res.success) {
-          await fetchUser();
+          await refreshUser();
           addToast("success", "Successfully logged in with Google!");
-          router.push("/dashboard");
+          
+          let defaultRedirect = "/dashboard";
+          const params = new URLSearchParams(window.location.search);
+          const redirectTo = params.get("redirectTo") || defaultRedirect;
+          
           if (onSuccess) onSuccess();
+          window.location.href = redirectTo;
         } else {
           addToast("error", res.message || "Failed to login with Google");
         }
       } else if (action === "link") {
         const res = await linkGoogleAccount(credentialResponse.credential);
         if (res.success) {
-          await fetchUser();
+          await refreshUser();
           addToast("success", "Google account linked successfully!");
           if (onSuccess) onSuccess();
         } else {

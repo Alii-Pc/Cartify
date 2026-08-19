@@ -53,7 +53,7 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: function() { return !this.googleId; },
+      required: function(this: any): boolean { return !this.googleId; },
       minlength: 8,
       select: false,
     },
@@ -100,7 +100,7 @@ const UserSchema = new Schema<IUser>(
 );
 
 UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password") || !this.password) return next();
 
   try {
     const salt = await bcrypt.genSalt(12);

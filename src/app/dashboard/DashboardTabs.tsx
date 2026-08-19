@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, Settings, ShieldCheck, Mail, Calendar, Phone, Lock, Save, Loader2, Info } from "lucide-react";
+import Link from "next/link";
+import { User, Settings, ShieldCheck, Mail, Calendar, Phone, Lock, Save, Loader2, Info, Store } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
@@ -56,6 +57,16 @@ export default function DashboardTabs({ user }: { user: DashboardUser }) {
           <Settings className="h-5 w-5" />
           <span className="font-medium">Account Settings</span>
         </button>
+
+        <div className="pt-4 mt-4 border-t border-gray-100">
+          <Link
+            href="/"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-charcoal-600 hover:bg-olive-100 hover:text-olive-800"
+          >
+            <Store className="h-5 w-5" />
+            <span className="font-medium">Go to Store</span>
+          </Link>
+        </div>
       </div>
 
       {/* Main Content Area */}
