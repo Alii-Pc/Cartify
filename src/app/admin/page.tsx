@@ -32,6 +32,8 @@ interface DashboardStats {
   totalProducts: number;
   revenueLast7Days: DailyRevenue[];
   ordersByStatus: OrderStatusCount[];
+  paymentStatus: { status: string; count: number }[];
+  topSellingProducts: { productId: string; name: string; image: string; quantity: number; revenue: number }[];
   recentOrders: RecentOrder[];
 }
 
@@ -177,41 +179,127 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Orders by Status */}
+      {/* Status Breakdowns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Orders by Status */}
+        <div className="admin-card bg-white p-6 rounded-2xl border border-olive-200 shadow-sm">
+          <h2 className="text-xl font-display font-semibold text-charcoal-900 mb-4">Orders by Status</h2>
+          <div className="flex flex-wrap gap-3">
+            {stats.ordersByStatus?.map((status, i) => {
+              const statusStyles: Record<string, string> = {
+                pending: "bg-amber-50 border-amber-200 text-amber-700",
+                confirmed: "bg-olive-50 border-olive-200 text-olive-700",
+                processing: "bg-sky-50 border-sky-200 text-sky-700",
+                shipped: "bg-charcoal-700 border-charcoal-800 text-cream-50",
+                delivered: "bg-emerald-50 border-emerald-200 text-emerald-700",
+                cancelled: "bg-red-50 border-red-200 text-red-700",
+              };
+              const countStyles: Record<string, string> = {
+                pending: "bg-amber-100 text-amber-800",
+                confirmed: "bg-olive-100 text-olive-800",
+                processing: "bg-sky-100 text-sky-800",
+                shipped: "bg-charcoal-800 text-cream-100",
+                delivered: "bg-emerald-100 text-emerald-800",
+                cancelled: "bg-red-100 text-red-800",
+              };
+              const style = statusStyles[status.status] || "bg-cream-100 border-olive-200 text-charcoal-700";
+              const countStyle = countStyles[status.status] || "bg-cream-200 text-charcoal-800";
+              return (
+                <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-full border ${style}`}>
+                  <span className="font-semibold capitalize">{status.status}</span>
+                  <span className={`${countStyle} px-2 py-0.5 rounded-full text-xs font-bold`}>
+                    {status.count}
+                  </span>
+                </div>
+              );
+            })}
+            {(!stats.ordersByStatus || stats.ordersByStatus.length === 0) && (
+              <div className="text-charcoal-700 text-sm">No orders found.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Payment Status */}
+        <div className="admin-card bg-white p-6 rounded-2xl border border-olive-200 shadow-sm">
+          <h2 className="text-xl font-display font-semibold text-charcoal-900 mb-4">Payment Status</h2>
+          <div className="flex flex-wrap gap-3">
+            {stats.paymentStatus?.map((payment, i) => {
+              const statusStyles: Record<string, string> = {
+                pending: "bg-amber-50 border-amber-200 text-amber-700",
+                paid: "bg-emerald-50 border-emerald-200 text-emerald-700",
+                failed: "bg-red-50 border-red-200 text-red-700",
+                refunded: "bg-sky-50 border-sky-200 text-sky-700",
+              };
+              const countStyles: Record<string, string> = {
+                pending: "bg-amber-100 text-amber-800",
+                paid: "bg-emerald-100 text-emerald-800",
+                failed: "bg-red-100 text-red-800",
+                refunded: "bg-sky-100 text-sky-800",
+              };
+              const style = statusStyles[payment.status] || "bg-cream-100 border-olive-200 text-charcoal-700";
+              const countStyle = countStyles[payment.status] || "bg-cream-200 text-charcoal-800";
+              return (
+                <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-full border ${style}`}>
+                  <span className="font-semibold capitalize">{payment.status}</span>
+                  <span className={`${countStyle} px-2 py-0.5 rounded-full text-xs font-bold`}>
+                    {payment.count}
+                  </span>
+                </div>
+              );
+            })}
+            {(!stats.paymentStatus || stats.paymentStatus.length === 0) && (
+              <div className="text-charcoal-700 text-sm">No payment data found.</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Selling Products */}
       <div className="admin-card bg-white p-6 rounded-2xl border border-olive-200 shadow-sm">
-        <h2 className="text-xl font-display font-semibold text-charcoal-900 mb-4">Orders by Status</h2>
-        <div className="flex flex-wrap gap-3">
-          {stats.ordersByStatus?.map((status, i) => {
-            const statusStyles: Record<string, string> = {
-              pending: "bg-amber-50 border-amber-200 text-amber-700",
-              confirmed: "bg-olive-50 border-olive-200 text-olive-700",
-              processing: "bg-sky-50 border-sky-200 text-sky-700",
-              shipped: "bg-charcoal-700 border-charcoal-800 text-cream-50",
-              delivered: "bg-emerald-50 border-emerald-200 text-emerald-700",
-              cancelled: "bg-red-50 border-red-200 text-red-700",
-            };
-            const countStyles: Record<string, string> = {
-              pending: "bg-amber-100 text-amber-800",
-              confirmed: "bg-olive-100 text-olive-800",
-              processing: "bg-sky-100 text-sky-800",
-              shipped: "bg-charcoal-800 text-cream-100",
-              delivered: "bg-emerald-100 text-emerald-800",
-              cancelled: "bg-red-100 text-red-800",
-            };
-            const style = statusStyles[status.status] || "bg-cream-100 border-olive-200 text-charcoal-700";
-            const countStyle = countStyles[status.status] || "bg-cream-200 text-charcoal-800";
-            return (
-              <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-full border ${style}`}>
-                <span className="font-semibold capitalize">{status.status}</span>
-                <span className={`${countStyle} px-2 py-0.5 rounded-full text-xs font-bold`}>
-                  {status.count}
-                </span>
-              </div>
-            );
-          })}
-          {(!stats.ordersByStatus || stats.ordersByStatus.length === 0) && (
-            <div className="text-charcoal-700 text-sm">No orders found.</div>
-          )}
+        <h2 className="text-xl font-display font-semibold text-charcoal-900 mb-6">Top Selling Products</h2>
+        <div className="overflow-x-auto">
+          <table className="admin-table w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-olive-200 text-charcoal-700 text-sm uppercase">
+                <th className="pb-3 px-4 font-semibold">Product</th>
+                <th className="pb-3 px-4 font-semibold text-right">Units Sold</th>
+                <th className="pb-3 px-4 font-semibold text-right">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.topSellingProducts?.map((product: any, idx: number) => (
+                <tr key={product.productId} className="border-b border-olive-100 hover:bg-cream-50 transition-colors">
+                  <td className="py-4 px-4 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+                      {product.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-charcoal-900 font-semibold">{product.name}</div>
+                      <div className="text-charcoal-500 text-xs">#{idx + 1} Best Seller</div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-right text-charcoal-900 font-medium">
+                    {product.quantity}
+                  </td>
+                  <td className="py-4 px-4 text-right text-charcoal-900 font-bold text-emerald-600">
+                    ${(product.revenue || 0).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+              {(!stats.topSellingProducts || stats.topSellingProducts.length === 0) && (
+                <tr>
+                  <td colSpan={3} className="py-8 text-center text-charcoal-700">
+                    No sales data available.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

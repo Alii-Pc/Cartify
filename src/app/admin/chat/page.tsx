@@ -5,6 +5,7 @@ import { database } from "@/lib/firebase";
 import { ref, onValue, push, set, serverTimestamp, remove, update } from "firebase/database";
 import { Send, User as UserIcon, Clock, CheckCircle, MessageSquare, Plus, X, Edit2, Trash2 } from "lucide-react";
 import dynamic from 'next/dynamic';
+import { AIFaqView } from "@/components/admin/AIFaqView";
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 
 type ChatMeta = {
@@ -30,6 +31,7 @@ type Message = {
 };
 
 export default function AdminChatPage() {
+  const [activeMode, setActiveMode] = useState<"support" | "ai">("support");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -224,8 +226,45 @@ export default function AdminChatPage() {
     setShowEmoji(false);
   };
 
+  const unreadCount = sessions.filter(s => s.meta.unreadAdmin).length;
+
   return (
-    <div className="h-[calc(100vh-8rem)] flex overflow-hidden rounded-3xl border border-olive-100 bg-white/50 backdrop-blur-xl shadow-sm ring-1 ring-black/5">
+    <div className="space-y-6">
+      {/* Segmented Control Navigation */}
+      <div className="flex justify-center">
+        <div className="bg-gray-100/80 p-1.5 rounded-2xl flex items-center gap-1 shadow-sm border border-gray-200/50 w-full max-w-sm">
+          <button
+            onClick={() => setActiveMode("support")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-sm font-semibold transition-all ${
+              activeMode === "support" 
+                ? "bg-white text-charcoal-900 shadow-sm ring-1 ring-black/5" 
+                : "text-charcoal-500 hover:text-charcoal-900 hover:bg-gray-200/50"
+            }`}
+          >
+            <span>Support Chats</span>
+            {unreadCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          
+          <button
+            onClick={() => setActiveMode("ai")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-sm font-semibold transition-all ${
+              activeMode === "ai" 
+                ? "bg-white text-charcoal-900 shadow-sm ring-1 ring-black/5" 
+                : "text-charcoal-500 hover:text-charcoal-900 hover:bg-gray-200/50"
+            }`}
+          >
+            <span>AI Chats</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      {activeMode === "support" && (
+        <div className="h-[calc(100vh-12rem)] flex overflow-hidden rounded-3xl border border-olive-100 bg-white/50 backdrop-blur-xl shadow-sm ring-1 ring-black/5">
       
       {/* Sidebar - Chat List */}
       <div className="w-1/3 border-r border-olive-100/60 bg-white/60 flex flex-col backdrop-blur-md relative">
@@ -465,6 +504,12 @@ export default function AdminChatPage() {
             <p className="text-sm mt-1">Select a conversation from the sidebar to start replying</p>
           </div>
         </div>
+      )}
+      </div>
+      )}
+      
+      {activeMode === "ai" && (
+        <AIFaqView />
       )}
     </div>
   );

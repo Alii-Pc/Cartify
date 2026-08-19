@@ -359,22 +359,7 @@ export function Hero() {
               </div>
             </div>
 
-            {/* Bottom Promo Strip of the Showcase Suite */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-olive-100 bg-olive-950 px-6 py-3.5 text-cream-100 text-xs font-medium">
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold uppercase text-charcoal-900">
-                  Coupon Code
-                </span>
-                <span>Use <strong className="text-amber-400 font-mono">WELCOME10</strong> at checkout for 10% off your entire cart</span>
-              </div>
-              <Link
-                href="/products"
-                className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-bold transition-colors underline"
-              >
-                <span>Browse All 24+ Curated Products</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+
           </div>
         </div>
       )}

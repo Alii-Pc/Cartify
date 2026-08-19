@@ -179,7 +179,18 @@ export function AIChatWidget() {
                             ? "bg-gradient-to-tr from-charcoal-900 to-[#2A2A2A] text-white rounded-[22px] rounded-br-[6px] px-5 py-3.5 shadow-md" 
                             : "bg-white border border-gray-100/80 text-charcoal-800 rounded-[22px] rounded-tl-[6px] px-5 py-3.5 shadow-sm"
                         }`}>
-                          {msg.text}
+                          {msg.text.split(/(!\[.*?\]\(.*?\))/g).map((part, i) => {
+                            const match = part.match(/!\[(.*?)\]\((.*?)\)/);
+                            if (match) {
+                              return (
+                                <div key={i} className="my-2 rounded-xl overflow-hidden border border-gray-200/50 shadow-sm">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={match[2]} alt={match[1]} className="w-full h-auto object-cover aspect-video bg-gray-50" />
+                                </div>
+                              );
+                            }
+                            return <span key={i}>{part}</span>;
+                          })}
                         </div>
                       </div>
                       <div className={`text-[10px] text-gray-400 mt-1.5 font-medium ${isUser ? "mr-2" : "ml-10"}`}>

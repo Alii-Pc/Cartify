@@ -19,7 +19,9 @@ export async function GET(req: NextRequest) {
       totalUsers,
       totalProducts,
       statusCounts,
-      recentOrders
+      recentOrders,
+      topSellingResult,
+      paymentStatusResult
     ] = await Promise.all([
       Order.countDocuments(),
       User.countDocuments(),
@@ -31,7 +33,23 @@ export async function GET(req: NextRequest) {
         .sort({ createdAt: -1 })
         .limit(5)
         .populate("userId", "name email")
-        .lean()
+        .lean(),
+      Order.aggregate([
+        { $unwind: "$items" },
+        { $group: { 
+            _id: "$items.productId", 
+            name: { $first: "$items.name" }, 
+            image: { $first: "$items.image" }, 
+            quantity: { $sum: "$items.quantity" }, 
+            revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } } 
+          } 
+        },
+        { $sort: { quantity: -1 } },
+        { $limit: 5 }
+      ]),
+      Order.aggregate([
+        { $group: { _id: "$paymentStatus", count: { $sum: 1 } } }
+      ])
     ]);
 
     const revenueResult = await Order.aggregate([
@@ -81,12 +99,27 @@ export async function GET(req: NextRequest) {
       count: curr.count
     }));
 
+    const paymentStatus = paymentStatusResult.map((curr: any) => ({
+      status: curr._id,
+      count: curr.count
+    }));
+
+    const topSellingProducts = topSellingResult.map((curr: any) => ({
+      productId: curr._id,
+      name: curr.name,
+      image: curr.image,
+      quantity: curr.quantity,
+      revenue: curr.revenue
+    }));
+
     return successResponse({
       totalRevenue,
       totalOrders,
       totalUsers,
       totalProducts,
       ordersByStatus,
+      paymentStatus,
+      topSellingProducts,
       revenueLast7Days: formattedRevenue,
       recentOrders
     });
