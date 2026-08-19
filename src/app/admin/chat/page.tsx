@@ -360,7 +360,7 @@ export default function AdminChatPage() {
 
       {/* Main Chat Area */}
       {activeChatId ? (
-        <div className="flex-1 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col bg-white relative">
           {/* Chat Header */}
           <div className="flex items-center gap-4 border-b border-gray-50 p-5 bg-white z-10">
              <div className="relative">

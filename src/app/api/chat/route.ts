@@ -5,6 +5,7 @@ import { Product } from "@/models/Product";
 import { AIChatLog } from "@/models/AIChatLog";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {

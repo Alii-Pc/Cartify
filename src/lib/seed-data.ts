@@ -51,8 +51,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 48.00,
     category: "home-living",
     images: [
-      "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=800&q=80"
+      "/images/products/pourover_set.jpg"
     ],
     rating: 4.9,
     reviewCount: 42,
@@ -74,8 +73,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: undefined,
     category: "home-living",
     images: [
-      "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80"
+      "/images/products/woven_basket.jpg",
     ],
     rating: 4.8,
     reviewCount: 19,
@@ -90,14 +88,13 @@ export const SEED_PRODUCTS = [
   },
   {
     name: "Linen Throw Cushion & Pillow Cover",
-    slug: "linen-throw-cushion",
+    slug: "belgian-linen-throw-cushion",
     description: "Stonewashed Belgian linen pillowcase featuring hidden brass zipper and plush feather-down interior insert.",
     price: 45.00,
     compareAtPrice: 55.00,
     category: "home-living",
     images: [
-      "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=800&q=80"
+      "/images/products/throw_cushion.jpg",
     ],
     rating: 4.7,
     reviewCount: 31,
@@ -141,8 +138,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 95.00,
     category: "apparel",
     images: [
-      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      "/images/products/duffel_bag.jpg",
     ],
     rating: 4.9,
     reviewCount: 88,
@@ -163,8 +159,7 @@ export const SEED_PRODUCTS = [
     price: 68.00,
     category: "apparel",
     images: [
-      "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80"
+      "/images/products/cotton_crewneck.jpg"
     ],
     rating: 4.8,
     reviewCount: 64,
@@ -206,7 +201,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 64.00,
     category: "apparel",
     images: [
-      "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      "/images/products/denim_tote.jpg"
     ],
     rating: 4.7,
     reviewCount: 22,
@@ -228,8 +223,7 @@ export const SEED_PRODUCTS = [
     price: 58.00,
     category: "electronics",
     images: [
-      "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=800&q=80"
+      "/images/products/laptop_stand.jpg"
     ],
     rating: 4.9,
     reviewCount: 73,
@@ -250,8 +244,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 220.00,
     category: "electronics",
     images: [
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=800&q=80"
+      "/images/products/headphones.jpg"
     ],
     rating: 4.9,
     reviewCount: 114,
@@ -293,7 +286,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 45.00,
     category: "electronics",
     images: [
-      "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=800&q=80"
+      "/images/products/wooden_charger.jpg"
     ],
     rating: 4.7,
     reviewCount: 51,
@@ -481,8 +474,7 @@ export const SEED_PRODUCTS = [
     price: 22.00,
     category: "outdoors",
     images: [
-      "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80"
+      "/images/products/steel_water_bottle.jpg"
     ],
     rating: 4.9,
     reviewCount: 146,
@@ -504,7 +496,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 65.00,
     category: "outdoors",
     images: [
-      "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      "/images/products/camping_hammock.jpg"
     ],
     rating: 4.8,
     reviewCount: 59,
