@@ -10,6 +10,7 @@ import { registerUser } from "@/lib/authClient";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { GoogleLoginButton } from "./GoogleLoginButton";
 
 export function SignupForm() {
   const router = useRouter();
@@ -78,7 +79,18 @@ export function SignupForm() {
         Create account
       </Button>
 
-      <p className="text-center text-sm text-charcoal-700/70">
+      <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-2 text-gray-500">Or continue with</span>
+        </div>
+      </div>
+
+      <GoogleLoginButton action="login" />
+
+      <p className="text-center text-sm text-charcoal-700/70 mt-4">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-olive-700 hover:underline">
           Log in

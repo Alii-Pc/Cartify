@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
+      avatar: user.avatar,
+      hasGoogle: !!user.googleId,
       isVerified: user.isVerified,
       createdAt: user.createdAt.toISOString(),
     };

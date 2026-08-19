@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { useAuth } from "@/context/AuthContext";
+import { GoogleLoginButton } from "./GoogleLoginButton";
 
 export function LoginForm() {
   const router = useRouter();
@@ -93,7 +94,18 @@ export function LoginForm() {
         Log in
       </Button>
 
-      <p className="text-center text-sm text-charcoal-700/70">
+      <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-white px-2 text-gray-500">Or continue with</span>
+        </div>
+      </div>
+
+      <GoogleLoginButton action="login" />
+
+      <p className="text-center text-sm text-charcoal-700/70 mt-4">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="font-medium text-olive-700 hover:underline">
           Sign up

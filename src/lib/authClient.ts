@@ -87,3 +87,21 @@ export async function resetPassword(
   });
   return parseResponse<null>(res);
 }
+
+export async function loginWithGoogle(credential: string): Promise<ApiResponse<SafeUser>> {
+  const res = await fetch("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential, action: "login" }),
+  });
+  return parseResponse<SafeUser>(res);
+}
+
+export async function linkGoogleAccount(credential: string): Promise<ApiResponse<null>> {
+  const res = await fetch("/api/auth/google", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential, action: "link" }),
+  });
+  return parseResponse<null>(res);
+}

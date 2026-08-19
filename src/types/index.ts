@@ -2,6 +2,8 @@ export interface SafeUser {
   id: string;
   name: string;
   email: string;
+  avatar?: string | undefined;
+  hasGoogle?: boolean | undefined;
   role?: "user" | "admin" | undefined;
   isVerified: boolean;
   createdAt: string;

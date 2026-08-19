@@ -5,7 +5,9 @@ export interface IUser extends Document {
   name: string;
   email: string;
   phone?: string;
-  password: string;
+  password?: string;
+  avatar?: string;
+  googleId?: string;
   role: "user" | "admin";
   isVerified: boolean;
   verificationOtp?: string;
@@ -41,9 +43,17 @@ const UserSchema = new Schema<IUser>(
       type: String,
       trim: true,
     },
+    avatar: {
+      type: String,
+    },
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function() { return !this.googleId; },
       minlength: 8,
       select: false,
     },
@@ -104,6 +114,7 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.comparePassword = async function (
   candidate: string
 ): Promise<boolean> {
+  if (!this.password) return false;
   return bcrypt.compare(candidate, this.password);
 };
 

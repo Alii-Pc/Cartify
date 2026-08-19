@@ -44,6 +44,8 @@ export async function GET(req: NextRequest) {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
+      avatar: user.avatar,
+      hasGoogle: !!user.googleId,
       role: user.role || "user",
       isVerified: user.isVerified,
       createdAt: user.createdAt.toISOString(),
