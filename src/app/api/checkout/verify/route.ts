@@ -11,11 +11,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await authenticateUser(req);
-    if (!user) {
-      return errorResponse("Authentication required", 401);
-    }
-
+    let user = await authenticateUser(req);
     const sessionId = req.nextUrl.searchParams.get("session_id");
     const orderId = req.nextUrl.searchParams.get("order_id");
 
@@ -38,6 +34,10 @@ export async function GET(req: NextRequest) {
         return errorResponse("Order not found", 404);
       }
 
+      if (!user) {
+        user = await User.findById(order.userId);
+      }
+
       // Fallback: update order if webhook hasn't processed it yet
       if (session.payment_status === "paid" && order.paymentStatus !== "paid") {
         order.status = "confirmed";
@@ -47,7 +47,9 @@ export async function GET(req: NextRequest) {
         order.invoiceNumber = `INV-${order.orderNumber}`;
 
         await order.save();
-        await processOrderSuccess(order, user);
+        if (user) {
+          await processOrderSuccess(order, user);
+        }
       }
     } else if (orderId) {
       order = await Order.findById(orderId);
@@ -55,19 +57,22 @@ export async function GET(req: NextRequest) {
         return errorResponse("Order not found", 404);
       }
 
+      if (!user) {
+        user = await User.findById(order.userId);
+      }
+
       // Verify that it's a COD order and belongs to the user
-      if (order.paymentMethod !== "cod" || order.userId.toString() !== user._id.toString()) {
+      if (order.paymentMethod !== "cod" || (user && order.userId.toString() !== user._id.toString())) {
         return errorResponse("Invalid order verification", 403);
       }
 
-      // If it's a new COD order (pending), we can mark it as processed here if we didn't do it in the checkout route
-      // But we already decremented stock in the checkout route. 
-      // We still need to clear cart and send emails/notifications for COD.
-      // Let's ensure we only run this once by checking a flag or just running it if it hasn't been invoiced yet
+      // If it's a new COD order (pending), process if not already invoiced
       if (!order.invoiceNumber) {
         order.invoiceNumber = `INV-${order.orderNumber}`;
         await order.save();
-        await processOrderSuccess(order, user);
+        if (user) {
+          await processOrderSuccess(order, user);
+        }
       }
     }
 

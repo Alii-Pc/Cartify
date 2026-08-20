@@ -30,12 +30,12 @@ export async function GET(
       return new NextResponse("Order not found", { status: 404 });
     }
 
-    if (order.paymentStatus !== "paid") {
-      return new NextResponse("Invoice only available for paid orders", { status: 403 });
-    }
-
-    const invoiceNumber = order.invoiceNumber || order.orderNumber;
-    const paidAtStr = order.paidAt ? new Date(order.paidAt).toLocaleDateString() : new Date(order.createdAt).toLocaleDateString();
+    const invoiceNumber = order.invoiceNumber || `INV-${order.orderNumber}`;
+    const isCod = order.paymentMethod === "cod";
+    const isPaid = order.paymentStatus === "paid";
+    const paidAtStr = isPaid
+      ? (order.paidAt ? new Date(order.paidAt).toLocaleDateString() : new Date(order.createdAt).toLocaleDateString())
+      : (isCod ? "Pay on Delivery (Unpaid)" : "Pending");
 
     const itemsHtml = order.items.map((item: any) => `
       <tr>
@@ -93,7 +93,7 @@ export async function GET(
               <h2>INVOICE</h2>
               <p><strong>Invoice #:</strong> ${invoiceNumber}</p>
               <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
-              <p><strong>Paid Date:</strong> ${paidAtStr}</p>
+              <p><strong>Payment Status:</strong> ${isPaid ? "PAID" : isCod ? "CASH ON DELIVERY (Pending)" : "PENDING"}</p>
             </div>
           </div>
           
@@ -140,22 +140,23 @@ export async function GET(
               </tr>` : ''}
               <tr>
                 <td><strong>Shipping</strong></td>
-                <td style="text-align: right;">$${order.shipping.toFixed(2)}</td>
+                <td style="text-align: right;">${order.shipping === 0 ? "FREE" : `$${order.shipping.toFixed(2)}`}</td>
               </tr>
               <tr>
                 <td><strong>Tax</strong></td>
                 <td style="text-align: right;">$${order.tax.toFixed(2)}</td>
               </tr>
               <tr>
-                <td class="grand-total">Grand Total</td>
+                <td class="grand-total">${isCod ? "Amount Due (Cash)" : "Grand Total"}</td>
                 <td class="grand-total" style="text-align: right;">$${order.total.toFixed(2)}</td>
               </tr>
             </table>
           </div>
 
           <div class="payment-info">
-            <p><strong>Payment Method:</strong> ${order.paymentMethod.toUpperCase()}</p>
-            <p><strong>Payment Status:</strong> PAID</p>
+            <p><strong>Payment Method:</strong> ${isCod ? "Cash on Delivery (COD)" : order.paymentMethod.toUpperCase()}</p>
+            <p><strong>Payment Status:</strong> ${isPaid ? "PAID" : isCod ? "UNPAID (To be collected in cash upon delivery)" : "PENDING"}</p>
+            ${isPaid && order.paidAt ? `<p><strong>Paid On:</strong> ${paidAtStr}</p>` : ''}
             ${order.stripePaymentIntentId ? `<p><strong>Transaction ID:</strong> ${order.stripePaymentIntentId}</p>` : ''}
           </div>
 

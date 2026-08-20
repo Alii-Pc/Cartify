@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const AUTH_COOKIE_NAME = "cartify_token";
-const PROTECTED_ROUTES = ["/checkout", "/orders", "/payment"];
+const PROTECTED_ROUTES = ["/checkout", "/orders"];
 const AUTH_ROUTES = ["/login", "/signup"];
 
 // NOTE: middleware runs on the Edge runtime, which doesn't support the
@@ -52,16 +52,17 @@ export async function middleware(req: NextRequest) {
   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login" && !pathname.startsWith("/api/");
+  const fullTarget = pathname + (req.nextUrl.search || "");
 
   if (isAdminRoute && !valid) {
     const loginUrl = new URL("/admin/login", req.url);
-    loginUrl.searchParams.set("redirectTo", pathname);
+    loginUrl.searchParams.set("redirectTo", fullTarget);
     return NextResponse.redirect(loginUrl);
   }
 
   if (isProtected && !valid) {
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("redirectTo", pathname);
+    loginUrl.searchParams.set("redirectTo", fullTarget);
     return NextResponse.redirect(loginUrl);
   }
 

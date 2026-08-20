@@ -307,16 +307,14 @@ export default function OrderConfirmationPage() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                {order.paymentStatus === 'paid' && (
-                  <a
-                    href={`/api/orders/${order._id}/invoice`}
-                    target="_blank"
-                    className="flex items-center justify-center gap-2 w-full rounded-full bg-charcoal-800 py-3 text-center font-display text-sm font-bold text-cream-50 hover:bg-charcoal-900 shadow-sm hover:scale-[1.01] active:scale-99 transition-all"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>Download Invoice</span>
-                  </a>
-                )}
+                <a
+                  href={`/api/orders/${order._id}/invoice`}
+                  target="_blank"
+                  className="flex items-center justify-center gap-2 w-full rounded-full bg-charcoal-800 py-3 text-center font-display text-sm font-bold text-cream-50 hover:bg-charcoal-900 shadow-sm hover:scale-[1.01] active:scale-99 transition-all"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Download Invoice</span>
+                </a>
                 <Link
                   href="/products"
                   className="block w-full rounded-full bg-olive-800 py-3 text-center font-display text-sm font-bold text-cream-50 hover:bg-olive-900 shadow-sm hover:scale-[1.01] active:scale-99 transition-all hover:no-underline"

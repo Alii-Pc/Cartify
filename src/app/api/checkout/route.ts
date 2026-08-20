@@ -114,6 +114,9 @@ export async function POST(req: NextRequest) {
     const baseUrl = rawAppUrl.startsWith("http") ? rawAppUrl : `https://${rawAppUrl}`;
 
     if (isCod) {
+      newOrder.invoiceNumber = `INV-${newOrder.orderNumber}`;
+      await newOrder.save();
+
       // Decrement stock
       for (const item of orderItems) {
         await Product.findByIdAndUpdate(item.productId, {
@@ -121,7 +124,19 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Return a special success URL for COD that just includes the order_id
+      // Clear cart
+      const { Cart } = await import("@/models/Cart");
+      await Cart.findOneAndUpdate({ userId: user._id }, { $set: { items: [] } });
+
+      // Send order confirmation email immediately
+      try {
+        const { sendOrderEmails } = await import("@/lib/mailer");
+        await sendOrderEmails(newOrder);
+      } catch (mailErr) {
+        console.error("Failed to send COD order email:", mailErr);
+      }
+
+      // Return a special success URL for COD that includes the order_id
       return successResponse({ sessionUrl: `${baseUrl}/payment/success?order_id=${newOrder._id}` });
     }
 
