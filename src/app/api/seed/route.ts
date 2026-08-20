@@ -20,8 +20,7 @@ export async function GET() {
     }
 
     // Upsert seed products by slug so custom admin-created products are NEVER deleted
-    for (let index = 0; index < SEED_PRODUCTS.length; index++) {
-      const prod = SEED_PRODUCTS[index];
+    for (const [index, prod] of SEED_PRODUCTS.entries()) {
       const isFeatured = index < 8 ? true : prod.featured;
       await Product.findOneAndUpdate(
         { slug: prod.slug },

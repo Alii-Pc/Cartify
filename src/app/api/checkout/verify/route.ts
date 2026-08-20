@@ -71,8 +71,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (!order) {
+      return errorResponse("Order not found", 404);
+    }
+
     return successResponse({
-      order: order.toObject ? order.toObject() : order,
+      order: (order as any).toObject ? (order as any).toObject() : order,
     });
   } catch (err: any) {
     if (err?.digest === "DYNAMIC_SERVER_USAGE") {

@@ -2,6 +2,7 @@ export interface SafeUser {
   id: string;
   name: string;
   email: string;
+  phone?: string | undefined;
   avatar?: string | undefined;
   hasGoogle?: boolean | undefined;
   role?: "user" | "admin" | undefined;
