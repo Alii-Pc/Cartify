@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const AUTH_COOKIE_NAME = "cartify_token";
-const PROTECTED_ROUTES = ["/dashboard", "/checkout", "/orders", "/payment"];
+const PROTECTED_ROUTES = ["/checkout", "/orders", "/payment"];
 const AUTH_ROUTES = ["/login", "/signup"];
 
 // NOTE: middleware runs on the Edge runtime, which doesn't support the
@@ -73,6 +73,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/checkout/:path*", "/orders/:path*", "/payment/:path*", "/login", "/signup", "/api/:path*"],
+  matcher: ["/admin/:path*", "/checkout/:path*", "/orders/:path*", "/payment/:path*", "/login", "/signup", "/api/:path*"],
 };
 

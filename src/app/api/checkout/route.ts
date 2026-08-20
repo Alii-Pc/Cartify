@@ -91,6 +91,8 @@ export async function POST(req: NextRequest) {
     const totals = calculateOrderTotals(subtotal, promoCode, dbCoupon);
     const { discount, shipping, tax, total } = totals;
 
+    const isCod = validation.data.paymentMethod === "cod";
+
     const newOrder = new Order({
       userId: user._id,
       items: orderItems,
@@ -100,9 +102,9 @@ export async function POST(req: NextRequest) {
       tax,
       discount,
       total,
-      status: "pending",
+      status: isCod ? "confirmed" : "pending",
       paymentStatus: "pending",
-      paymentMethod: "stripe",
+      paymentMethod: isCod ? "cod" : "stripe",
       promoCode: promoCode?.trim().toUpperCase() || undefined,
     });
 
@@ -110,6 +112,18 @@ export async function POST(req: NextRequest) {
 
     const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || req.nextUrl.origin;
     const baseUrl = rawAppUrl.startsWith("http") ? rawAppUrl : `https://${rawAppUrl}`;
+
+    if (isCod) {
+      // Decrement stock
+      for (const item of orderItems) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -item.quantity },
+        });
+      }
+
+      // Return a special success URL for COD that just includes the order_id
+      return successResponse({ sessionUrl: `${baseUrl}/payment/success?order_id=${newOrder._id}` });
+    }
 
     const lineItems: any[] = orderItems.map((item) => {
       let imageUrls: string[] = [];
@@ -169,8 +183,6 @@ export async function POST(req: NextRequest) {
         name: `Promo Code: ${promoCode}`,
       });
     }
-
-
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",

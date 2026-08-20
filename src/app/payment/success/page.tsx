@@ -10,26 +10,28 @@ import type { SafeOrder } from "@/types";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
   const { clearCart } = useCart();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<SafeOrder | null>(null);
   
-  // Track if we've successfully verified to avoid clearing cart multiple times in dev
   const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     async function verifyPayment() {
-      if (!sessionId) {
-        setError("No session ID found.");
+      const sessionId = searchParams.get("session_id");
+      const orderId = searchParams.get("order_id");
+
+      if (!sessionId && !orderId) {
+        setError("No session ID or order ID found.");
         setLoading(false);
         return;
       }
 
       try {
-        const res = await fetch(`/api/checkout/verify?session_id=${sessionId}`);
+        const queryParams = sessionId ? `session_id=${sessionId}` : `order_id=${orderId}`;
+        const res = await fetch(`/api/checkout/verify?${queryParams}`);
         const json = await res.json();
 
         if (json.success && json.data) {
@@ -49,7 +51,7 @@ function PaymentSuccessContent() {
     }
 
     verifyPayment();
-  }, [sessionId, clearCart, verified]);
+  }, [searchParams, clearCart, verified]);
 
   if (loading) {
     return (
@@ -98,7 +100,7 @@ function PaymentSuccessContent() {
             <div className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-20"></div>
           </div>
           <h1 className="font-display text-3xl font-bold text-charcoal-900 sm:text-4xl mb-3">
-            Payment Successful!
+            {order.paymentMethod === "cod" ? "Order Confirmed!" : "Payment Successful!"}
           </h1>
           <p className="text-sm text-charcoal-700/80 max-w-md mx-auto leading-relaxed">
             Thank you for your purchase. We&apos;ve received order <span className="font-semibold text-charcoal-900 font-mono">#{order.orderNumber}</span>. A confirmation email will be sent shortly.
@@ -108,7 +110,9 @@ function PaymentSuccessContent() {
         <div className="card-surface p-6 sm:p-8 mb-8 animate-fadeIn" style={{ animationDelay: "100ms" }}>
           <div className="flex flex-col sm:flex-row justify-between items-center pb-6 border-b border-olive-100 mb-6 gap-4">
             <div className="text-center sm:text-left">
-              <p className="text-xs font-semibold text-charcoal-700/60 uppercase tracking-wider mb-1">Amount Paid</p>
+              <p className="text-xs font-semibold text-charcoal-700/60 uppercase tracking-wider mb-1">
+                {order.paymentMethod === "cod" ? "Amount to Pay (Cash)" : "Amount Paid"}
+              </p>
               <p className="font-display text-3xl font-extrabold text-olive-900">${order.total.toFixed(2)}</p>
             </div>
             
@@ -148,6 +152,27 @@ function PaymentSuccessContent() {
                 </p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-olive-100/60 space-y-2">
+            <div className="flex justify-between text-xs text-charcoal-700">
+              <span>Subtotal</span>
+              <span>${order.subtotal.toFixed(2)}</span>
+            </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between text-xs text-emerald-600 font-semibold">
+                <span>Discount</span>
+                <span>-${order.discount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-xs text-charcoal-700">
+              <span>Shipping</span>
+              <span>${order.shipping.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-charcoal-700">
+              <span>Estimated Tax</span>
+              <span>${order.tax.toFixed(2)}</span>
+            </div>
           </div>
         </div>
 

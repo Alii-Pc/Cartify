@@ -50,7 +50,7 @@ function ProductsCatalogContent() {
         if (inStockParam) params.set("inStock", "true");
         if (sortParam) params.set("sort", sortParam);
         params.set("page", pageParam.toString());
-        params.set("limit", "12");
+        params.set("limit", "24");
 
         const res = await fetch(`/api/products?${params.toString()}`);
         const json = await res.json();
@@ -190,7 +190,7 @@ function ProductsCatalogContent() {
           <ProductSort
             total={total}
             page={pageParam}
-            limit={12}
+            limit={24}
             currentSort={sortParam}
             onSortChange={(sort) => updateUrl({ sort, page: 1 })}
             onToggleMobileFilters={() => setIsMobileFiltersOpen(true)}
@@ -199,7 +199,7 @@ function ProductsCatalogContent() {
 
           <div className="mt-6">
             {loading ? (
-              <ProductSkeleton count={8} />
+              <ProductSkeleton count={24} />
             ) : (
               <ProductGrid
                 products={products}
@@ -226,7 +226,7 @@ export default function ProductsPage() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-          <ProductSkeleton count={8} />
+          <ProductSkeleton count={24} />
         </div>
       }
     >

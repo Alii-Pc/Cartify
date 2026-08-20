@@ -135,8 +135,8 @@ export default function ContactPage() {
             <MapPin className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <h3 className="font-display text-sm font-bold text-charcoal-900 sm:text-base">Visit Studio</h3>
-          <p className="text-xs text-charcoal-700/70">742 Evergreen Terrace, Suite 400</p>
-          <span className="text-xs font-semibold text-charcoal-800">Portland, OR 97201</span>
+          <p className="text-xs text-charcoal-700/70">E2 Block Johar Town</p>
+          <span className="text-xs font-semibold text-charcoal-800">Lahore</span>
         </div>
 
         <button 

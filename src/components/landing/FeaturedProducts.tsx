@@ -19,7 +19,7 @@ export function FeaturedProducts() {
   useEffect(() => {
     async function fetchFeatured() {
       try {
-        const res = await fetch("/api/products?featured=true&limit=4");
+        const res = await fetch("/api/products?featured=true&limit=8");
         const json = await res.json();
         if (json.success && json.data?.products) {
           setFeaturedProducts(json.data.products);
@@ -97,7 +97,7 @@ export function FeaturedProducts() {
         {/* Product Cards Grid */}
         <div className="mt-12 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
+            Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="h-80 rounded-2xl bg-white/50 animate-pulse border border-olive-100" />
             ))
           ) : featuredProducts.length > 0 ? (

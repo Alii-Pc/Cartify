@@ -21,6 +21,7 @@ export const createOrderSchema = z.object({
   shippingAddress: shippingAddressSchema,
   promoCode: z.string().trim().optional(),
   items: z.array(orderItemInputSchema).optional(),
+  paymentMethod: z.enum(["stripe", "cod"]).default("stripe").optional(),
 });
 
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>;

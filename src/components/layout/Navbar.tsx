@@ -11,9 +11,9 @@ import {
   User,
   Heart,
   LogOut,
-  LayoutDashboard,
   PackageCheck,
   ChevronDown,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -21,6 +21,8 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useFCM } from "@/hooks/useFCM";
 import { PromoBanner } from "@/components/layout/PromoBanner";
 import { NotificationDrawer } from "@/components/notifications/NotificationDrawer";
+import { ProfileSettingsModal } from "@/components/user/ProfileSettingsModal";
+import { AccountSettingsModal } from "@/components/user/AccountSettingsModal";
 
 const NAV_LINKS = [
   { href: "/products", label: "Products" },
@@ -34,6 +36,9 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -191,14 +196,27 @@ export function Navbar() {
                     </div>
 
                     <div className="py-1">
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-charcoal-800 hover:bg-cream-100 hover:text-olive-800 transition-colors"
+                      <button
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          setIsProfileModalOpen(true);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-charcoal-800 hover:bg-cream-100 hover:text-olive-800 transition-colors"
                       >
-                        <LayoutDashboard className="h-4 w-4 text-olive-700" />
-                        <span>Dashboard</span>
-                      </Link>
+                        <User className="h-4 w-4 text-olive-700" />
+                        <span>Profile</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          setIsSettingsModalOpen(true);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-charcoal-800 hover:bg-cream-100 hover:text-olive-800 transition-colors"
+                      >
+                        <Settings className="h-4 w-4 text-olive-700" />
+                        <span>Settings</span>
+                      </button>
 
                       <Link
                         href="/orders"
@@ -285,6 +303,15 @@ export function Navbar() {
         </div>
       )}
     </header>
+
+    <ProfileSettingsModal 
+      isOpen={isProfileModalOpen} 
+      onClose={() => setIsProfileModalOpen(false)} 
+    />
+    <AccountSettingsModal 
+      isOpen={isSettingsModalOpen} 
+      onClose={() => setIsSettingsModalOpen(false)} 
+    />
     </>
   );
 }

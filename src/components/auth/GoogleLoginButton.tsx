@@ -29,7 +29,7 @@ export function GoogleLoginButton({ action, onSuccess }: GoogleLoginButtonProps)
           await refreshUser();
           addToast("success", "Successfully logged in with Google!");
           
-          let defaultRedirect = "/dashboard";
+          let defaultRedirect = "/";
           const params = new URLSearchParams(window.location.search);
           const redirectTo = params.get("redirectTo") || defaultRedirect;
           

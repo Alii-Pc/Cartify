@@ -89,6 +89,7 @@ function CheckoutForm() {
   // Place Order States
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "cod">("stripe");
 
   // ── Fetch user's saved addresses ──
   useEffect(() => {
@@ -364,6 +365,7 @@ function CheckoutForm() {
             productId: item.product._id,
             quantity: item.quantity,
           })),
+          paymentMethod,
         }),
       });
 
@@ -726,30 +728,52 @@ function CheckoutForm() {
             ) : null}
           </div>
 
-          {/* Payment Method Details (Stripe) */}
+          {/* Payment Method Details */}
           <div className="card-surface p-6 sm:p-8">
             <h2 className="font-display text-lg font-bold text-charcoal-900 sm:text-xl border-b border-olive-100 pb-4 mb-5 flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-olive-750" />
               <span>Payment Method</span>
             </h2>
-            <div className="bg-cream-50/50 p-5 rounded-xl border border-olive-150 flex items-start gap-4">
-              <div className="rounded-lg bg-white border border-olive-100 p-2 text-olive-800 flex-shrink-0 mt-0.5 shadow-sm">
-                <CreditCard className="h-6 w-6" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-charcoal-900 flex items-center gap-2">
-                  Secure payment powered by Stripe
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs font-semibold text-charcoal-700 bg-white border border-olive-200 px-2 py-0.5 rounded shadow-sm">Visa</span>
-                  <span className="text-xs font-semibold text-charcoal-700 bg-white border border-olive-200 px-2 py-0.5 rounded shadow-sm">Mastercard</span>
-                  <span className="text-xs font-semibold text-charcoal-700 bg-white border border-olive-200 px-2 py-0.5 rounded shadow-sm">Amex</span>
+            
+            <div className="space-y-4">
+              <label className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${
+                paymentMethod === "stripe" ? "border-olive-500 bg-olive-50/30" : "border-olive-200 hover:bg-cream-50"
+              }`}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="stripe"
+                  checked={paymentMethod === "stripe"}
+                  onChange={() => setPaymentMethod("stripe")}
+                  className="mt-1 h-4 w-4 text-olive-700 border-olive-300 focus:ring-olive-500"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-sm text-charcoal-900">Credit / Debit Card</span>
+                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-sm">Secure via Stripe</span>
+                  </div>
+                  <p className="text-xs text-charcoal-600">Pay safely using your preferred credit or debit card.</p>
                 </div>
-                <p className="text-xs text-charcoal-700/70 leading-relaxed mt-3 flex items-center gap-1.5">
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-                  256-bit SSL encrypted & secure
-                </p>
-              </div>
+              </label>
+
+              <label className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${
+                paymentMethod === "cod" ? "border-olive-500 bg-olive-50/30" : "border-olive-200 hover:bg-cream-50"
+              }`}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="cod"
+                  checked={paymentMethod === "cod"}
+                  onChange={() => setPaymentMethod("cod")}
+                  className="mt-1 h-4 w-4 text-olive-700 border-olive-300 focus:ring-olive-500"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-sm text-charcoal-900">Cash on Delivery</span>
+                  </div>
+                  <p className="text-xs text-charcoal-600">Pay in cash when your order is delivered to your doorstep.</p>
+                </div>
+              </label>
             </div>
           </div>
         </div>
@@ -871,10 +895,10 @@ function CheckoutForm() {
               {isPlacingOrder ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream-50 border-t-transparent" />
-                  <span>Creating secure session...</span>
+                  <span>{paymentMethod === "cod" ? "Confirming Order..." : "Creating secure session..."}</span>
                 </span>
               ) : (
-                <span>Pay with Stripe</span>
+                <span>{paymentMethod === "cod" ? "Confirm Order (Cash on Delivery)" : "Pay with Stripe"}</span>
               )}
             </button>
           </div>

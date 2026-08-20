@@ -368,7 +368,7 @@ export const SEED_PRODUCTS = [
     price: 18.00,
     category: "beauty",
     images: [
-      "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=800&q=80"
+      "/images/products/lip_balm.jpg"
     ],
     rating: 4.7,
     reviewCount: 34,
@@ -452,7 +452,7 @@ export const SEED_PRODUCTS = [
     compareAtPrice: 58.00,
     category: "kitchen",
     images: [
-      "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80"
+      "/images/products/french_press.jpg"
     ],
     rating: 4.8,
     reviewCount: 63,
@@ -548,6 +548,526 @@ export const SEED_PRODUCTS = [
       "Material": "18oz Filtered Wax Canvas & Full Grain Leather",
       "Capacity": "28 Liters",
       "Laptop Sleeve": "Fits up to 16-inch MacBook Pro"
+    }
+  },
+
+  // ── Additional Products: Apparel ──
+  {
+    name: "Linen Wrap Dress",
+    slug: "linen-wrap-dress",
+    description: "Effortlessly elegant wrap dress cut from lightweight French linen. Features adjustable waist tie, side pockets, and a relaxed midi silhouette.",
+    price: 78.00,
+    compareAtPrice: 95.00,
+    category: "apparel",
+    images: [
+      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.8,
+    reviewCount: 47,
+    stock: 22,
+    featured: false,
+    tag: "New",
+    specifications: {
+      "Material": "100% French Linen",
+      "Fit": "Relaxed Midi",
+      "Sizes": "XS – XL",
+      "Care": "Machine wash cold, hang dry"
+    }
+  },
+  {
+    name: "Cashmere Blend Sweater",
+    slug: "cashmere-blend-sweater",
+    description: "Ultra-soft crew-neck sweater knitted from a premium cashmere-merino blend. Ribbed cuffs and hem provide a structured yet cozy fit.",
+    price: 89.00,
+    category: "apparel",
+    images: [
+      "/images/products/cashmere_sweater.jpg"
+    ],
+    rating: 4.9,
+    reviewCount: 62,
+    stock: 18,
+    featured: false,
+    tag: "Bestseller",
+    specifications: {
+      "Material": "70% Merino Wool, 30% Cashmere",
+      "Weight": "280 GSM",
+      "Fit": "Regular / Unisex",
+      "Care": "Hand wash cold, lay flat to dry"
+    }
+  },
+  {
+    name: "Cotton Canvas Apron",
+    slug: "cotton-canvas-apron",
+    description: "Heavy-duty 12oz cotton canvas apron with adjustable cross-back straps and reinforced pockets. Built for the kitchen, workshop, or garden.",
+    price: 38.00,
+    category: "apparel",
+    images: [
+      "/images/products/canvas_apron.jpg"
+    ],
+    rating: 4.7,
+    reviewCount: 33,
+    stock: 40,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Material": "12oz Washed Cotton Canvas",
+      "Straps": "Adjustable cross-back leather straps",
+      "Pockets": "3 front pockets with tool loop"
+    }
+  },
+  {
+    name: "Polarized Sunglasses",
+    slug: "polarized-sunglasses",
+    description: "Handcrafted acetate frame sunglasses with CR-39 polarized lenses offering 100% UV400 protection. Lightweight and built for all-day comfort.",
+    price: 65.00,
+    compareAtPrice: 80.00,
+    category: "apparel",
+    images: [
+      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.6,
+    reviewCount: 54,
+    stock: 35,
+    featured: false,
+    tag: "Sale",
+    specifications: {
+      "Frame": "Italian Mazzucchelli Acetate",
+      "Lenses": "CR-39 Polarized, UV400",
+      "Weight": "28 grams",
+      "Includes": "Hardshell case & microfiber cloth"
+    }
+  },
+
+  // ── Additional Products: Home & Living ──
+  {
+    name: "Bamboo Bath Towel Set",
+    slug: "bamboo-bath-towel-set",
+    description: "Plush 600 GSM towel trio woven from organic bamboo viscose. Naturally antibacterial, hypoallergenic, and incredibly absorbent.",
+    price: 52.00,
+    category: "home-living",
+    images: [
+      "/images/products/bamboo_towels.jpg"
+    ],
+    rating: 4.8,
+    reviewCount: 38,
+    stock: 28,
+    featured: false,
+    tag: "New",
+    specifications: {
+      "Material": "100% Organic Bamboo Viscose",
+      "Weight": "600 GSM",
+      "Set Includes": "1 Bath, 1 Hand, 1 Face towel",
+      "Care": "Machine wash warm, tumble dry low"
+    }
+  },
+  {
+    name: "Modern Table Lamp",
+    slug: "modern-table-lamp",
+    description: "Sculptural bedside lamp with a linen drum shade and solid oak base. Three-way touch dimmer lets you set the perfect ambient glow.",
+    price: 68.00,
+    category: "home-living",
+    images: [
+      "/images/products/table_lamp.jpg"
+    ],
+    rating: 4.7,
+    reviewCount: 45,
+    stock: 15,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Base": "Solid American White Oak",
+      "Shade": "Natural Linen Drum, 30 cm",
+      "Bulb": "E26 LED included (warm 2700K)",
+      "Features": "3-way touch dimmer"
+    }
+  },
+  {
+    name: "Minimalist Wall Clock",
+    slug: "minimalist-wall-clock",
+    description: "Silent sweep quartz wall clock crafted from solid beechwood. Clean numberless dial brings calm Scandinavian style to any room.",
+    price: 45.00,
+    category: "home-living",
+    images: [
+      "https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.9,
+    reviewCount: 29,
+    stock: 20,
+    featured: false,
+    tag: "Bestseller",
+    specifications: {
+      "Material": "Solid European Beechwood",
+      "Diameter": "30 cm (12 inches)",
+      "Movement": "Silent sweep quartz (AA battery)",
+      "Finish": "Natural oil & beeswax"
+    }
+  },
+  {
+    name: "Insulated Lunch Box",
+    slug: "insulated-lunch-box",
+    description: "Double-wall vacuum insulated stainless steel bento box keeping food hot for 6 hours or cold for 12. Leak-proof dual compartment design.",
+    price: 36.00,
+    category: "home-living",
+    images: [
+      "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.6,
+    reviewCount: 57,
+    stock: 42,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Material": "18/8 Stainless Steel, BPA-Free",
+      "Capacity": "1.2 Liters (dual compartment)",
+      "Insulation": "Hot 6 hrs / Cold 12 hrs",
+      "Weight": "480 grams"
+    }
+  },
+
+  // ── Additional Products: Kitchen ──
+  {
+    name: "Handcrafted Wooden Spatula Set",
+    slug: "handcrafted-wooden-spatula-set",
+    description: "Three-piece set of hand-carved teak cooking utensils finished with food-safe mineral oil. Gentle on non-stick surfaces.",
+    price: 28.00,
+    category: "kitchen",
+    images: [
+      "https://images.unsplash.com/photo-1556909172-54557c7e4fb7?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.8,
+    reviewCount: 41,
+    stock: 50,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Material": "Sustainably Harvested Teak",
+      "Set Includes": "Spatula, Slotted spoon, Stirring paddle",
+      "Finish": "Food-safe mineral oil",
+      "Care": "Hand wash only, oil periodically"
+    }
+  },
+  {
+    name: "AeroPress Coffee Maker",
+    slug: "aeropress-coffee-maker",
+    description: "Portable immersion brewer producing smooth, rich coffee in under 2 minutes. Ideal for home, office, or travel with included filter set.",
+    price: 35.00,
+    category: "kitchen",
+    images: [
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.9,
+    reviewCount: 128,
+    stock: 60,
+    featured: false,
+    tag: "Bestseller",
+    specifications: {
+      "Material": "BPA-Free Polypropylene",
+      "Brew Time": "1-2 minutes",
+      "Capacity": "1-3 cups per press",
+      "Includes": "350 micro-filters, scoop, stirrer"
+    }
+  },
+  {
+    name: "Stainless Steel French Press",
+    slug: "double-wall-stainless-french-press",
+    description: "Double-wall insulated French press with precision four-level filtration system. Keeps coffee hot for 60 minutes without a heating element.",
+    price: 48.00,
+    compareAtPrice: 58.00,
+    category: "kitchen",
+    images: [
+      "/images/products/french_press.jpg"
+    ],
+    rating: 4.7,
+    reviewCount: 76,
+    stock: 25,
+    featured: false,
+    tag: "Sale",
+    specifications: {
+      "Material": "18/10 Stainless Steel, Double-Wall",
+      "Capacity": "1 Liter (8 cups)",
+      "Filter": "4-level stainless micro-mesh",
+      "Care": "Dishwasher safe (all parts)"
+    }
+  },
+  {
+    name: "Ceramic Matcha Bowl",
+    slug: "ceramic-matcha-bowl",
+    description: "Traditional Japanese chawan handmade from Mino-yaki stoneware. Wide shape allows proper whisking for a frothy, ceremonial-grade matcha.",
+    price: 32.00,
+    category: "kitchen",
+    images: [
+      "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.8,
+    reviewCount: 23,
+    stock: 30,
+    featured: false,
+    tag: "New",
+    specifications: {
+      "Material": "Mino-yaki Stoneware",
+      "Diameter": "12 cm",
+      "Origin": "Gifu Prefecture, Japan",
+      "Care": "Hand wash recommended"
+    }
+  },
+  {
+    name: "Organic Green Tea Leaves",
+    slug: "organic-green-tea-leaves",
+    description: "Single-origin first-flush Sencha loose leaf green tea from Uji, Kyoto. Shade-grown for deep umami flavor and vibrant emerald color.",
+    price: 22.00,
+    category: "kitchen",
+    images: [
+      "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.9,
+    reviewCount: 63,
+    stock: 55,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Type": "First-Flush Sencha",
+      "Origin": "Uji, Kyoto, Japan",
+      "Weight": "100g resealable pouch",
+      "Certification": "JAS Organic, USDA Organic"
+    }
+  },
+  {
+    name: "Reusable Silicone Food Bags",
+    slug: "reusable-silicone-food-bags",
+    description: "Airtight, leak-proof platinum silicone storage bags rated for freezer, microwave, and dishwasher. Replace hundreds of single-use plastic bags.",
+    price: 24.00,
+    category: "kitchen",
+    images: [
+      "/images/products/silicone_bags.jpg"
+    ],
+    rating: 4.6,
+    reviewCount: 48,
+    stock: 65,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Material": "100% Platinum Food-Grade Silicone",
+      "Set": "4 bags (2 medium, 2 large)",
+      "Temp Range": "-40°C to 230°C",
+      "Care": "Dishwasher safe, boil to sterilize"
+    }
+  },
+
+  // ── Additional Products: Beauty ──
+  {
+    name: "Natural Sea Sponge",
+    slug: "natural-sea-sponge",
+    description: "Sustainably harvested Mediterranean silk sea sponge. Naturally hypoallergenic, self-cleaning, and lasts 6–8 months with proper care.",
+    price: 18.00,
+    category: "beauty",
+    images: [
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.7,
+    reviewCount: 30,
+    stock: 40,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Type": "Silk Sea Sponge (Hippiospongia)",
+      "Size": "10–12 cm diameter",
+      "Origin": "Mediterranean, sustainably harvested",
+      "Care": "Rinse and air dry between uses"
+    }
+  },
+  {
+    name: "Vitamin C Brightening Serum",
+    slug: "vitamin-c-brightening-serum",
+    description: "Potent 20% L-Ascorbic acid serum stabilized with Vitamin E and ferulic acid. Targets dark spots, evens skin tone, and boosts radiance.",
+    price: 38.00,
+    category: "beauty",
+    images: [
+      "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.9,
+    reviewCount: 87,
+    stock: 35,
+    featured: false,
+    tag: "Bestseller",
+    specifications: {
+      "Volume": "30 ml (1.0 fl oz)",
+      "Active": "20% L-Ascorbic Acid, Vitamin E, Ferulic Acid",
+      "Skin Type": "All skin types",
+      "Formulation": "Vegan, Cruelty-Free, Fragrance-Free"
+    }
+  },
+  {
+    name: "Beard Grooming Kit",
+    slug: "beard-grooming-kit",
+    description: "Complete beard care set featuring cold-pressed jojoba oil, boar bristle brush, sandalwood comb, and stainless steel scissors in a canvas roll.",
+    price: 42.00,
+    compareAtPrice: 55.00,
+    category: "beauty",
+    images: [
+      "/images/products/beard_kit.jpg"
+    ],
+    rating: 4.8,
+    reviewCount: 44,
+    stock: 20,
+    featured: false,
+    tag: "Sale",
+    specifications: {
+      "Kit Includes": "Beard oil, brush, comb, scissors, balm",
+      "Oil Blend": "Jojoba, Argan, Cedarwood Essential Oil",
+      "Brush": "Natural Boar Bristle with Bamboo Handle",
+      "Packaging": "Waxed canvas travel roll"
+    }
+  },
+
+  // ── Additional Products: Electronics ──
+  {
+    name: "Wireless Noise Cancelling Earbuds",
+    slug: "wireless-noise-cancelling-earbuds",
+    description: "True wireless earbuds with hybrid active noise cancellation, 10mm graphene drivers, and 30-hour total battery life with charging case.",
+    price: 95.00,
+    compareAtPrice: 120.00,
+    category: "electronics",
+    images: [
+      "/images/products/earbuds.jpg"
+    ],
+    rating: 4.8,
+    reviewCount: 91,
+    stock: 25,
+    featured: false,
+    tag: "Sale",
+    specifications: {
+      "Drivers": "10mm Graphene-coated",
+      "ANC": "Hybrid Active Noise Cancellation",
+      "Battery": "8 hrs (buds) + 22 hrs (case)",
+      "Connectivity": "Bluetooth 5.3, Multipoint"
+    }
+  },
+  {
+    name: "Wireless Charging Mouse Pad",
+    slug: "wireless-charging-mouse-pad",
+    description: "Extra-large desk mat with built-in 15W Qi wireless charging zone. Vegan leather surface with non-slip rubber base for precision tracking.",
+    price: 45.00,
+    category: "electronics",
+    images: [
+      "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.6,
+    reviewCount: 37,
+    stock: 30,
+    featured: false,
+    tag: "New",
+    specifications: {
+      "Dimensions": "80 cm x 30 cm x 0.4 cm",
+      "Charging": "15W Qi Wireless (phone zone)",
+      "Surface": "Vegan PU Leather, water-resistant",
+      "Cable": "Includes 1.8m braided USB-C cable"
+    }
+  },
+  {
+    name: "Bluetooth Smart Scale",
+    slug: "bluetooth-smart-scale",
+    description: "Precision body composition scale tracking 13 metrics via Bluetooth app sync. Tempered glass platform with backlit LED display.",
+    price: 42.00,
+    category: "electronics",
+    images: [
+      "/images/products/smart_scale.jpg"
+    ],
+    rating: 4.5,
+    reviewCount: 53,
+    stock: 35,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Metrics": "Weight, BMI, Body Fat, Muscle Mass + 9 more",
+      "Connectivity": "Bluetooth 5.0, iOS & Android app",
+      "Platform": "Tempered glass, 30 cm x 30 cm",
+      "Power": "4 x AAA batteries (included)"
+    }
+  },
+
+  // ── Additional Products: Outdoors ──
+  {
+    name: "Travel Yoga Mat",
+    slug: "travel-yoga-mat",
+    description: "Ultra-thin 1.5mm natural rubber travel mat that folds flat into your bag. Sweat-absorbing microsuede top layer with alignment guide markings.",
+    price: 55.00,
+    category: "outdoors",
+    images: [
+      "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.7,
+    reviewCount: 36,
+    stock: 28,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Material": "Natural Tree Rubber + Microsuede",
+      "Thickness": "1.5 mm (foldable)",
+      "Dimensions": "183 cm x 68 cm",
+      "Weight": "1 kg (includes carry strap)"
+    }
+  },
+  {
+    name: "Copper Water Bottle",
+    slug: "copper-water-bottle",
+    description: "Handcrafted pure copper bottle with leak-proof silicone seal. Ayurvedic tradition meets modern design for naturally alkaline water.",
+    price: 34.00,
+    category: "outdoors",
+    images: [
+      "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80"
+    ],
+    rating: 4.8,
+    reviewCount: 60,
+    stock: 32,
+    featured: false,
+    tag: "Bestseller",
+    specifications: {
+      "Material": "99.7% Pure Copper, food-safe lacquer interior",
+      "Capacity": "950 ml",
+      "Weight": "280 grams",
+      "Care": "Hand wash with lemon & salt"
+    }
+  },
+  {
+    name: "Memory Foam Travel Pillow",
+    slug: "memory-foam-travel-pillow",
+    description: "Ergonomic U-shaped neck pillow with premium memory foam core and breathable bamboo jersey cover. Compresses to half-size for packing.",
+    price: 29.00,
+    category: "outdoors",
+    images: [
+      "/images/products/travel_pillow.jpg"
+    ],
+    rating: 4.5,
+    reviewCount: 81,
+    stock: 45,
+    featured: false,
+    tag: "New",
+    specifications: {
+      "Fill": "Slow-rebound memory foam",
+      "Cover": "Bamboo jersey, removable & washable",
+      "Features": "Snap closure, compression bag included",
+      "Weight": "320 grams"
+    }
+  },
+  {
+    name: "Ergonomic Office Chair Cushion",
+    slug: "ergonomic-office-chair-cushion",
+    description: "Pressure-relieving gel-infused memory foam seat cushion with non-slip base. Improves posture and reduces tailbone strain during long hours.",
+    price: 40.00,
+    category: "outdoors",
+    images: [
+      "/images/products/chair_cushion.jpg"
+    ],
+    rating: 4.6,
+    reviewCount: 67,
+    stock: 38,
+    featured: false,
+    tag: null,
+    specifications: {
+      "Fill": "Gel-infused Memory Foam",
+      "Cover": "Breathable mesh, removable & washable",
+      "Dimensions": "45 cm x 35 cm x 7 cm",
+      "Base": "Non-slip silicone dots"
     }
   }
 ];
