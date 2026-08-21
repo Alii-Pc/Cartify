@@ -267,7 +267,6 @@ export default function ProductDetailsPage() {
           {specEntries.length > 0 && (
             <div className="mt-10 space-y-8">
               {specEntries.map(([key, value], idx) => {
-                const isColor = key.toLowerCase().includes("color");
                 return (
                   <div key={idx}>
                     <h3 className="text-sm font-semibold text-charcoal-800 uppercase tracking-wide mb-3">

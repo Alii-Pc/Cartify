@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { ShoppingCart, Star, Check, Heart, Truck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";

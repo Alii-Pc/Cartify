@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { MessageSquare, X, Send, User as UserIcon, Sparkles, Bot } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { MessageSquare, X, Send, Sparkles } from "lucide-react";
 import EmojiPicker from 'emoji-picker-react';
 
 type Message = {
@@ -14,7 +13,6 @@ type Message = {
 };
 
 export function AIChatWidget() {
-  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,7 +22,6 @@ export function AIChatWidget() {
   const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load chat history from local storage on mount
   useEffect(() => {

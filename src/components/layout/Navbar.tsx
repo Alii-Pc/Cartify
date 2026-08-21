@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Menu, X, Search, ShoppingCart, User, Heart, LogOut,
@@ -528,7 +528,7 @@ export function Navbar() {
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <p className="text-lg text-charcoal-600 mb-4">No results found for "{searchQuery}"</p>
+                      <p className="text-lg text-charcoal-600 mb-4">No results found for &ldquo;{searchQuery}&rdquo;</p>
                       <p className="text-sm text-charcoal-400">Try checking your spelling or using more general terms.</p>
                     </div>
                   )}
