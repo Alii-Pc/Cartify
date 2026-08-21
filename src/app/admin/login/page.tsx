@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-olive-grain">
       <AuthCard title="Admin Portal" subtitle="Log in to manage Cartify.">
         <Suspense fallback={<Loader label="Loading..." />}>
-          <LoginForm />
+          <LoginForm showGoogleLogin={false} />
         </Suspense>
       </AuthCard>
     </div>

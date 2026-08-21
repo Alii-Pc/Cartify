@@ -118,23 +118,24 @@ export function AIChatWidget() {
         <div className="mb-4 flex h-[650px] max-h-[85vh] w-[380px] max-w-[90vw] flex-col overflow-hidden rounded-[28px] bg-[#F9F9F9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] ring-1 ring-black/5 animate-slideUp transition-all origin-bottom-right relative">
           
           {/* Glassy Header */}
-          <div className="flex items-center justify-between p-5 border-b border-black/[0.03] z-20 backdrop-blur-xl bg-white/70 sticky top-0">
-            <div className="flex items-center gap-3.5">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-olive-800 to-charcoal-900 text-white shadow-md">
-                <Sparkles className="h-5 w-5 text-olive-200" />
-                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></div>
+          <div className="flex items-center justify-between p-5 border-b border-black/[0.03] z-20 backdrop-blur-xl bg-white/80 sticky top-0">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-olive-800 text-cream-50 shadow-sm">
+                <Sparkles className="h-4 w-4 text-cream-50" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white"></div>
               </div>
               <div>
-                <h3 className="font-bold text-[15px] text-charcoal-900 tracking-tight leading-none mb-1">Shopping Assistant</h3>
-                <p className="text-[11.5px] font-medium text-olive-600 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                  Online • Gemini AI
+                <h3 className="font-semibold text-sm text-charcoal-900 tracking-tight leading-none mb-1">Shopping Assistant</h3>
+                <p className="text-[11px] font-medium text-olive-700 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Online
                 </p>
               </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)} 
               className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 text-charcoal-400 hover:text-charcoal-900 transition-all focus:outline-none"
+              aria-label="Close chat"
             >
               <X className="h-5 w-5" />
             </button>
@@ -265,20 +266,21 @@ export function AIChatWidget() {
         </div>
       )}
 
-      {/* Floating Button */}
+      {/* Floating Minimalist AI Chat Button */}
       {!isOpen && (
-        <div className="relative group">
-          <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-olive-400 via-olive-600 to-[#1A1A1A] opacity-60 group-hover:opacity-100 blur-xl transition-opacity animate-pulse duration-1000" />
-          
-          <button
-            onClick={() => setIsOpen(true)}
-            className="relative flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#1A1A1A] via-[#2A2A2A] to-[#1A1A1A] text-white shadow-[0_8px_30px_rgba(0,0,0,0.3)] ring-1 ring-white/10 transition-all hover:scale-105 active:scale-95 overflow-hidden group-hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)] rotate-3 hover:rotate-6"
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
-            <Sparkles className="absolute top-3 right-3 h-3 w-3 text-olive-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Bot className="h-7 w-7 relative z-10 text-olive-50" />
-          </button>
-        </div>
+        <button
+          onClick={() => setIsOpen(true)}
+          aria-label="Open AI Shopping Assistant"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-olive-800 text-cream-50 shadow-lg shadow-olive-950/20 transition-all duration-200 hover:bg-olive-900 hover:scale-105 active:scale-95 border border-olive-700/40"
+        >
+          <Sparkles className="h-6 w-6 text-cream-50" />
+
+          {/* Subtle online status dot */}
+          <span className="absolute top-0.5 right-0.5 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white"></span>
+          </span>
+        </button>
       )}
     </div>
   );

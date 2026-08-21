@@ -13,7 +13,11 @@ import { Alert } from "@/components/ui/Alert";
 import { useAuth } from "@/context/AuthContext";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
-export function LoginForm() {
+interface LoginFormProps {
+  showGoogleLogin?: boolean;
+}
+
+export function LoginForm({ showGoogleLogin = true }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
@@ -94,16 +98,20 @@ export function LoginForm() {
         Log in
       </Button>
 
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-2 text-gray-500">Or continue with</span>
-        </div>
-      </div>
+      {showGoogleLogin && (
+        <>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-2 text-gray-500">Or continue with</span>
+            </div>
+          </div>
 
-      <GoogleLoginButton action="login" />
+          <GoogleLoginButton action="login" />
+        </>
+      )}
 
       <p className="text-center text-sm text-charcoal-700/70 mt-4">
         Don&apos;t have an account?{" "}

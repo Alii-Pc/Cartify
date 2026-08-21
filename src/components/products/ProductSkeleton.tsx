@@ -6,32 +6,33 @@ interface ProductSkeletonProps {
 
 export function ProductSkeleton({ count = 8 }: ProductSkeletonProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, idx) => (
         <div
           key={idx}
-          className="card-surface flex flex-col justify-between overflow-hidden animate-pulse"
+          className="bg-white border border-olive-100 rounded-2xl flex flex-col justify-between overflow-hidden animate-pulse"
         >
           {/* Image skeleton */}
-          <div className="aspect-square w-full bg-olive-200/50" />
+          <div className="aspect-[4/3] w-full bg-cream-100" />
 
           {/* Content skeleton */}
-          <div className="p-5 space-y-3">
-            <div className="flex justify-between">
-              <div className="h-3 w-20 rounded bg-olive-200/60" />
-              <div className="h-3 w-12 rounded bg-olive-200/60" />
-            </div>
-            <div className="h-5 w-3/4 rounded bg-olive-200/80" />
+          <div className="p-4 space-y-3">
+            <div className="h-2 w-16 rounded bg-olive-100" />
             <div className="space-y-1.5">
-              <div className="h-3 w-full rounded bg-olive-200/50" />
-              <div className="h-3 w-5/6 rounded bg-olive-200/50" />
+              <div className="h-4 w-full rounded bg-olive-200/80" />
+              <div className="h-4 w-3/4 rounded bg-olive-200/80" />
             </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-20 rounded bg-amber-100" />
+              <div className="h-3 w-8 rounded bg-olive-100" />
+            </div>
+            <div className="h-6 w-24 rounded bg-olive-200/80" />
+            <div className="h-3 w-20 rounded bg-olive-100" />
           </div>
 
           {/* Footer skeleton */}
-          <div className="flex items-center justify-between border-t border-olive-100/60 px-5 py-3.5 bg-cream-50/40">
-            <div className="h-6 w-16 rounded bg-olive-200/80" />
-            <div className="h-9 w-9 rounded-full bg-olive-200/80" />
+          <div className="px-4 pb-4">
+            <div className="h-10 w-full rounded-xl bg-olive-200/80" />
           </div>
         </div>
       ))}
