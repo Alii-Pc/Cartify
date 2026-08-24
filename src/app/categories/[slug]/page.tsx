@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { ProductSort } from "@/components/products/ProductSort";
 import { ProductSkeleton } from "@/components/products/ProductSkeleton";
+import { ActiveFilterChips } from "@/components/products/ActiveFilterChips";
 import { ChevronRight, ArrowLeft } from "lucide-react";
 import type { SafeProduct, SafeCategory } from "@/types";
 
@@ -18,6 +19,22 @@ export default function CategoryDetailsPage() {
   const [products, setProducts] = useState<SafeProduct[]>([]);
   const [category, setCategory] = useState<SafeCategory | null>(null);
   const [sortParam, setSortParam] = useState("newest");
+  const [gridCols, setGridCols] = useState<2 | 3 | 4>(4);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("cartify_grid_cols");
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (parsed === 2 || parsed === 3 || parsed === 4) {
+        setGridCols(parsed as 2 | 3 | 4);
+      }
+    }
+  }, []);
+
+  const handleGridColsChange = (cols: 2 | 3 | 4) => {
+    setGridCols(cols);
+    localStorage.setItem("cartify_grid_cols", cols.toString());
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -71,10 +88,10 @@ export default function CategoryDetailsPage() {
       </nav>
 
       {/* Category Header Banner */}
-      <div className="mb-12 rounded-3xl bg-cream-100/80 border border-olive-100 p-8 sm:p-12">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-4xl shadow-xs">
+      <div className="mb-12 rounded-3xl bg-cream-100/80 border border-olive-100 p-6 sm:p-12">
+        <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-6 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-5">
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-4xl shadow-xs shrink-0">
               {category?.emoji || "🏷️"}
             </span>
             <div>
@@ -90,7 +107,7 @@ export default function CategoryDetailsPage() {
 
           <Link
             href="/products"
-            className="flex items-center gap-2 rounded-full border border-olive-200 bg-white px-5 py-2.5 text-xs font-semibold text-charcoal-800 transition-colors hover:bg-cream-50"
+            className="flex items-center gap-2 rounded-full border border-olive-200 bg-white px-5 py-2.5 text-xs font-semibold text-charcoal-800 transition-colors hover:bg-cream-50 shrink-0"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>All Products</span>
@@ -107,15 +124,32 @@ export default function CategoryDetailsPage() {
         onSortChange={(sort) => setSortParam(sort)}
         onToggleMobileFilters={() => router.push(`/products?category=${slug}`)}
         activeFilterCount={1}
+        gridCols={gridCols}
+        onGridColsChange={handleGridColsChange}
       />
 
-      <div className="mt-6">
+      <div className="mt-5">
+        <ActiveFilterChips
+          selectedCategory={slug}
+          categories={category ? [category] : []}
+          minPrice=""
+          maxPrice=""
+          selectedTag=""
+          inStock={false}
+          searchQuery=""
+          onRemoveFilter={() => router.push("/products")}
+          onClearAll={() => router.push("/products")}
+        />
+      </div>
+
+      <div className="mt-5">
         {loading ? (
-          <ProductSkeleton count={8} />
+          <ProductSkeleton count={8} gridCols={gridCols} />
         ) : (
           <ProductGrid
             products={products}
             onResetFilters={() => router.push("/products")}
+            gridCols={gridCols}
           />
         )}
       </div>

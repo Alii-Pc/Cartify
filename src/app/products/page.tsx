@@ -7,6 +7,7 @@ import { ProductFilters } from "@/components/products/ProductFilters";
 import { ProductSort } from "@/components/products/ProductSort";
 import { ProductSkeleton } from "@/components/products/ProductSkeleton";
 import { ProductPagination } from "@/components/products/ProductPagination";
+import { ActiveFilterChips } from "@/components/products/ActiveFilterChips";
 import { Search, X } from "lucide-react";
 import type { SafeProduct, SafeCategory, PaginatedProductsResponse } from "@/types";
 
@@ -19,6 +20,7 @@ function ProductsCatalogContent() {
   const [categories, setCategories] = useState<SafeCategory[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [gridCols, setGridCols] = useState<2 | 3 | 4>(4);
 
   // Read URL params or set defaults
   const qParam = searchParams.get("q") || "";
@@ -36,6 +38,21 @@ function ProductsCatalogContent() {
   useEffect(() => {
     setSearchQuery(qParam);
   }, [qParam]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("cartify_grid_cols");
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (parsed === 2 || parsed === 3 || parsed === 4) {
+        setGridCols(parsed as 2 | 3 | 4);
+      }
+    }
+  }, []);
+
+  const handleGridColsChange = (cols: 2 | 3 | 4) => {
+    setGridCols(cols);
+    localStorage.setItem("cartify_grid_cols", cols.toString());
+  };
 
   useEffect(() => {
     async function fetchProducts() {
@@ -120,6 +137,24 @@ function ProductsCatalogContent() {
     });
   };
 
+  const handleRemoveFilter = (filterType: string, value?: string) => {
+    if (filterType === "category" && value) {
+      const activeCats = categoryParam.split(",").filter(Boolean);
+      const updated = activeCats.filter((c) => c !== value);
+      handleFilterChange({ category: updated.join(",") });
+    } else if (filterType === "price") {
+      handleFilterChange({ minPrice: "", maxPrice: "" });
+    } else if (filterType === "tag" && value) {
+      const activeTags = tagParam.split(",").filter(Boolean);
+      const updated = activeTags.filter((t) => t !== value);
+      handleFilterChange({ tag: updated.join(",") });
+    } else if (filterType === "inStock") {
+      handleFilterChange({ inStock: false });
+    } else if (filterType === "search") {
+      handleClearSearch();
+    }
+  };
+
   const handleResetAllFilters = () => {
     setSearchQuery("");
     router.push("/products", { scroll: false });
@@ -131,7 +166,8 @@ function ProductsCatalogContent() {
     activeCategoriesCount +
     activeTagsCount +
     (minPriceParam || maxPriceParam ? 1 : 0) +
-    (inStockParam ? 1 : 0);
+    (inStockParam ? 1 : 0) +
+    (qParam ? 1 : 0);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -195,15 +231,32 @@ function ProductsCatalogContent() {
             onSortChange={(sort) => updateUrl({ sort, page: 1 })}
             onToggleMobileFilters={() => setIsMobileFiltersOpen(true)}
             activeFilterCount={activeFilterCount}
+            gridCols={gridCols}
+            onGridColsChange={handleGridColsChange}
           />
 
-          <div className="mt-6">
+          <div className="mt-5">
+            <ActiveFilterChips
+              selectedCategory={categoryParam}
+              categories={categories}
+              minPrice={minPriceParam}
+              maxPrice={maxPriceParam}
+              selectedTag={tagParam}
+              inStock={inStockParam}
+              searchQuery={qParam}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAll={handleResetAllFilters}
+            />
+          </div>
+
+          <div className="mt-5">
             {loading ? (
-              <ProductSkeleton count={24} />
+              <ProductSkeleton count={24} gridCols={gridCols} />
             ) : (
               <ProductGrid
                 products={products}
                 onResetFilters={handleResetAllFilters}
+                gridCols={gridCols}
               />
             )}
           </div>

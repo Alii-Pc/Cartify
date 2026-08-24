@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, SlidersHorizontal, RefreshCw, Check } from "lucide-react";
+import { X, SlidersHorizontal, RefreshCw, Check, ChevronDown } from "lucide-react";
 import type { SafeCategory } from "@/types";
 
 interface ProductFiltersProps {
@@ -50,6 +50,16 @@ export function ProductFilters({
 }: ProductFiltersProps) {
   const [localMin, setLocalMin] = useState(minPrice);
   const [localMax, setLocalMax] = useState(maxPrice);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    categories: true,
+    price: true,
+    tags: true,
+    availability: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
   useEffect(() => {
     setLocalMin(minPrice);
@@ -120,227 +130,312 @@ export function ProductFilters({
 
       {/* Categories (Multi-Select Checkboxes) */}
       <div>
-        <div className="flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-            Categories
-          </h4>
-          {activeCategories.length > 0 && (
-            <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
-              {activeCategories.length} selected
-            </span>
-          )}
-        </div>
-        <div className="mt-3.5 flex flex-col gap-1.5">
-          {/* All Categories Option */}
-          <label
-            onClick={() => onFilterChange({ category: "" })}
-            className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
-              activeCategories.length === 0
-                ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
-                : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+        <button
+          onClick={() => toggleSection("categories")}
+          className="flex w-full items-center justify-between py-2 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+              Categories
+            </h4>
+            {activeCategories.length > 0 && (
+              <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
+                {activeCategories.length}
+              </span>
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-charcoal-700 transition-transform duration-300 ${
+              openSections.categories ? "rotate-180" : ""
             }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                  activeCategories.length === 0
-                    ? "border-olive-800 bg-olive-800 text-cream-50"
-                    : "border-charcoal-400/40 bg-white"
-                }`}
-              >
-                {activeCategories.length === 0 && <Check className="h-3 w-3 stroke-[3]" />}
-              </div>
-              <span>All Categories</span>
-            </div>
-          </label>
-
-          {/* Individual Category Checkboxes */}
-          {categories.map((cat) => {
-            const isSelected = activeCategories.includes(cat.slug);
-            return (
-              <label
-                key={cat._id}
-                onClick={() => handleCategoryCheckboxToggle(cat.slug)}
-                className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
-                  isSelected
-                    ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
-                    : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
-                      isSelected
-                        ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
-                        : "border-charcoal-400/40 bg-white hover:border-olive-600"
-                    }`}
-                  >
-                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                  </div>
-                  <span className="flex-shrink-0">{cat.emoji}</span>
-                  <span className="truncate">{cat.name}</span>
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            openSections.categories ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="mt-1.5 flex flex-col gap-1.5 pb-2">
+            {/* All Categories Option */}
+            <label
+              onClick={() => onFilterChange({ category: "" })}
+              className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
+                activeCategories.length === 0
+                  ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                  : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                    activeCategories.length === 0
+                      ? "border-olive-800 bg-olive-800 text-cream-50"
+                      : "border-charcoal-400/40 bg-white"
+                  }`}
+                >
+                  {activeCategories.length === 0 && <Check className="h-3 w-3 stroke-[3]" />}
                 </div>
-                {cat.productCount !== undefined && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ml-2 flex-shrink-0 transition-colors ${
-                      isSelected
-                        ? "bg-olive-800 text-cream-50"
-                        : "bg-olive-200/50 text-olive-800"
-                    }`}
-                  >
-                    {cat.productCount}
-                  </span>
-                )}
-              </label>
-            );
-          })}
+                <span>All Categories</span>
+              </div>
+            </label>
+
+            {/* Individual Category Checkboxes */}
+            {categories.map((cat) => {
+              const isSelected = activeCategories.includes(cat.slug);
+              return (
+                <label
+                  key={cat._id}
+                  onClick={() => handleCategoryCheckboxToggle(cat.slug)}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
+                    isSelected
+                      ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                      : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+                        isSelected
+                          ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
+                          : "border-charcoal-400/40 bg-white hover:border-olive-600"
+                      }`}
+                    >
+                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                    <span className="flex-shrink-0">{cat.emoji}</span>
+                    <span className="truncate">{cat.name}</span>
+                  </div>
+                  {cat.productCount !== undefined && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ml-2 flex-shrink-0 transition-colors ${
+                        isSelected
+                          ? "bg-olive-800 text-cream-50"
+                          : "bg-olive-200/50 text-olive-800"
+                      }`}
+                    >
+                      {cat.productCount}
+                    </span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Price Range */}
-      <div className="border-t border-olive-100 pt-6">
-        <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-          Price Range
-        </h4>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {PRESET_PRICES.map((preset) => {
-            const isActive =
-              preset.min === minPrice && preset.max === maxPrice;
-            return (
-              <button
-                key={preset.label}
-                type="button"
-                onClick={() =>
-                  onFilterChange({ minPrice: preset.min, maxPrice: preset.max })
-                }
-                className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors border ${
-                  isActive
-                    ? "border-olive-800 bg-olive-800 text-cream-50 font-semibold shadow-xs"
-                    : "border-olive-200 bg-white/70 text-charcoal-800 hover:border-olive-400"
-                }`}
-              >
-                {preset.label}
-              </button>
-            );
-          })}
-        </div>
+      <div className="border-t border-olive-100 pt-4">
+        <button
+          onClick={() => toggleSection("price")}
+          className="flex w-full items-center justify-between py-2 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+              Price Range
+            </h4>
+            {(minPrice || maxPrice) && (
+              <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
+                Active
+              </span>
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-charcoal-700 transition-transform duration-300 ${
+              openSections.price ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            openSections.price ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="mt-1 pb-2">
+            <div className="grid grid-cols-2 gap-2">
+              {PRESET_PRICES.map((preset) => {
+                const isActive =
+                  preset.min === minPrice && preset.max === maxPrice;
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() =>
+                      onFilterChange({ minPrice: preset.min, maxPrice: preset.max })
+                    }
+                    className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors border ${
+                      isActive
+                        ? "border-olive-800 bg-olive-800 text-cream-50 font-semibold shadow-xs"
+                        : "border-olive-200 bg-white/70 text-charcoal-800 hover:border-olive-400"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
 
-        <form onSubmit={handlePriceApply} className="mt-3.5 flex items-center gap-2">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-charcoal-700/50">
-              $
-            </span>
-            <input
-              type="number"
-              placeholder="Min"
-              min="0"
-              value={localMin}
-              onChange={(e) => setLocalMin(e.target.value)}
-              className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500"
-            />
+            <form onSubmit={handlePriceApply} className="mt-3.5 flex items-center gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-charcoal-700/50">
+                  $
+                </span>
+                <input
+                  type="number"
+                  placeholder="Min"
+                  min="0"
+                  value={localMin}
+                  onChange={(e) => setLocalMin(e.target.value)}
+                  className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500"
+                />
+              </div>
+              <span className="text-charcoal-700/40 font-medium">—</span>
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-charcoal-700/50">
+                  $
+                </span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  min="0"
+                  value={localMax}
+                  onChange={(e) => setLocalMax(e.target.value)}
+                  className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500"
+                />
+              </div>
+              <button
+                type="submit"
+                className="rounded-lg bg-olive-700 px-3 py-1.5 text-xs font-semibold text-cream-50 transition-colors hover:bg-olive-800 shadow-xs"
+              >
+                Go
+              </button>
+            </form>
           </div>
-          <span className="text-charcoal-700/40 font-medium">—</span>
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-charcoal-700/50">
-              $
-            </span>
-            <input
-              type="number"
-              placeholder="Max"
-              min="0"
-              value={localMax}
-              onChange={(e) => setLocalMax(e.target.value)}
-              className="w-full rounded-lg border border-olive-200 bg-white py-1.5 pl-6 pr-2 text-xs text-charcoal-900 focus:border-olive-500 focus:outline-none focus:ring-1 focus:ring-olive-500"
-            />
-          </div>
-          <button
-            type="submit"
-            className="rounded-lg bg-olive-700 px-3 py-1.5 text-xs font-semibold text-cream-50 transition-colors hover:bg-olive-800 shadow-xs"
-          >
-            Go
-          </button>
-        </form>
+        </div>
       </div>
 
       {/* Special Collection Tags (Multi-Select Checkboxes) */}
-      <div className="border-t border-olive-100 pt-6">
-        <div className="flex items-center justify-between">
-          <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-            Collection Tag
-          </h4>
-          {activeTags.length > 0 && (
-            <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
-              {activeTags.length} selected
-            </span>
-          )}
-        </div>
-        <div className="mt-3 flex flex-col gap-1.5">
-          {TAGS.map((t) => {
-            const isSelected = activeTags.includes(t.value);
-            return (
-              <label
-                key={t.value}
-                onClick={() => handleTagCheckboxToggle(t.value)}
-                className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
-                  isSelected
-                    ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
-                    : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                      isSelected
-                        ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
-                        : "border-charcoal-400/40 bg-white hover:border-olive-600"
-                    }`}
-                  >
-                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+      <div className="border-t border-olive-100 pt-4">
+        <button
+          onClick={() => toggleSection("tags")}
+          className="flex w-full items-center justify-between py-2 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+              Collection Tag
+            </h4>
+            {activeTags.length > 0 && (
+              <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
+                {activeTags.length}
+              </span>
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-charcoal-700 transition-transform duration-300 ${
+              openSections.tags ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            openSections.tags ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="mt-1 flex flex-col gap-1.5 pb-2">
+            {TAGS.map((t) => {
+              const isSelected = activeTags.includes(t.value);
+              return (
+                <label
+                  key={t.value}
+                  onClick={() => handleTagCheckboxToggle(t.value)}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-all select-none ${
+                    isSelected
+                      ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                      : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                        isSelected
+                          ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
+                          : "border-charcoal-400/40 bg-white hover:border-olive-600"
+                      }`}
+                    >
+                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                    <span>{t.label}</span>
                   </div>
-                  <span>{t.label}</span>
-                </div>
-              </label>
-            );
-          })}
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Availability / Stock (Checkbox & Toggle) */}
-      <div className="border-t border-olive-100 pt-6">
-        <label
-          onClick={() => onFilterChange({ inStock: !inStock })}
-          className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all select-none ${
-            inStock
-              ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
-              : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
+      <div className="border-t border-olive-100 pt-4">
+        <button
+          onClick={() => toggleSection("availability")}
+          className="flex w-full items-center justify-between py-2 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+              Availability
+            </h4>
+            {inStock && (
+              <span className="rounded-full bg-olive-100 px-2 py-0.5 text-[10px] font-bold text-olive-800">
+                On
+              </span>
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-charcoal-700 transition-transform duration-300 ${
+              openSections.availability ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            openSections.availability ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <div className="flex items-center gap-2.5">
-            <div
-              className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+          <div className="mt-1 pb-2">
+            <label
+              onClick={() => onFilterChange({ inStock: !inStock })}
+              className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all select-none ${
                 inStock
-                  ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
-                  : "border-charcoal-400/40 bg-white hover:border-olive-600"
+                  ? "bg-olive-800/10 text-olive-900 font-semibold border border-olive-300/50"
+                  : "bg-transparent text-charcoal-800 hover:bg-cream-100/70 border border-transparent"
               }`}
             >
-              {inStock && <Check className="h-3 w-3 stroke-[3]" />}
-            </div>
-            <span className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
-              In Stock Only
-            </span>
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                    inStock
+                      ? "border-olive-800 bg-olive-800 text-cream-50 shadow-2xs"
+                      : "border-charcoal-400/40 bg-white hover:border-olive-600"
+                  }`}
+                >
+                  {inStock && <Check className="h-3 w-3 stroke-[3]" />}
+                </div>
+                <span className="font-display text-sm font-semibold uppercase tracking-wider text-charcoal-900">
+                  In Stock Only
+                </span>
+              </div>
+              <div
+                className={`flex h-6 w-11 items-center rounded-full p-1 transition-colors ${
+                  inStock ? "bg-olive-700" : "bg-charcoal-700/20"
+                }`}
+              >
+                <div
+                  className={`h-4 w-4 rounded-full bg-white shadow-xs transition-transform ${
+                    inStock ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </div>
+            </label>
           </div>
-          <div
-            className={`flex h-6 w-11 items-center rounded-full p-1 transition-colors ${
-              inStock ? "bg-olive-700" : "bg-charcoal-700/20"
-            }`}
-          >
-            <div
-              className={`h-4 w-4 rounded-full bg-white shadow-xs transition-transform ${
-                inStock ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </div>
-        </label>
+        </div>
       </div>
     </div>
   );
@@ -355,24 +450,28 @@ export function ProductFilters({
       {/* Mobile Drawer */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-charcoal-900/60 backdrop-blur-xs lg:hidden">
-          <div className="flex h-full w-full max-w-sm flex-col justify-between bg-cream-50 p-6 shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
-            <div>
-              <div className="flex items-center justify-between border-b border-olive-200 pb-4 mb-4">
-                <h3 className="font-display text-lg font-semibold text-charcoal-900">
-                  Filter Products
-                </h3>
-                <button
-                  onClick={onCloseMobile}
-                  className="rounded-full p-2 text-charcoal-700 hover:bg-olive-100"
-                  aria-label="Close filters"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+          <div className="flex h-full w-full max-w-sm flex-col bg-cream-50 shadow-2xl animate-in slide-in-from-right duration-300">
+            {/* Mobile Header (Sticky) */}
+            <div className="flex items-center justify-between border-b border-olive-200 p-6 bg-cream-50 z-10 shrink-0">
+              <h3 className="font-display text-lg font-semibold text-charcoal-900">
+                Filter Products
+              </h3>
+              <button
+                onClick={onCloseMobile}
+                className="rounded-full p-2 text-charcoal-700 hover:bg-olive-100"
+                aria-label="Close filters"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6">
               {content}
             </div>
 
-            <div className="mt-8 pt-4 border-t border-olive-200 flex gap-3 sticky bottom-0 bg-cream-50">
+            {/* Mobile Footer (Sticky) */}
+            <div className="border-t border-olive-200 bg-cream-50 p-6 flex gap-3 shrink-0">
               <button
                 onClick={() => {
                   onReset();

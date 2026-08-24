@@ -223,19 +223,21 @@ export function Navbar() {
             <button
               onClick={() => setSearchOverlayOpen(true)}
               aria-label="Search"
-              className="rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
+              className="hidden md:flex rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
             >
               <Search className="h-5 w-5" />
             </button>
 
             {/* In-App Notifications Drawer */}
-            {isLoggedIn && <NotificationDrawer />}
+            <div className="hidden md:block">
+              {isLoggedIn && <NotificationDrawer />}
+            </div>
 
             {/* Wishlist Link */}
             <Link
               href="/wishlist"
               aria-label="Wishlist"
-              className="relative hidden sm:flex rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
+              className="relative hidden md:flex rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
             >
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 && (
@@ -249,7 +251,7 @@ export function Navbar() {
             <Link
               href="/cart"
               aria-label="Cart"
-              className="relative rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
+              className="relative hidden md:flex rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
             >
               <ShoppingCart className="h-5 w-5" />
               {itemCount > 0 && (
@@ -589,7 +591,7 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className="px-4 py-3 text-lg font-semibold text-charcoal-800 hover:text-olive-800 hover:bg-olive-100/50 rounded-xl transition-colors"
+                    className="px-4 py-3.5 text-lg font-semibold text-charcoal-800 hover:text-olive-800 hover:bg-olive-100/50 rounded-xl transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -599,7 +601,7 @@ export function Navbar() {
                 <div className="mt-2">
                   <button
                     onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
-                    className="flex w-full items-center justify-between px-4 py-3 text-lg font-semibold text-charcoal-800 hover:text-olive-800 hover:bg-olive-100/50 rounded-xl transition-colors"
+                    className="flex w-full items-center justify-between px-4 py-3.5 text-lg font-semibold text-charcoal-800 hover:text-olive-800 hover:bg-olive-100/50 rounded-xl transition-colors"
                   >
                     <span>Categories</span>
                     <ChevronDown className={`h-5 w-5 transition-transform ${mobileCategoriesOpen ? "rotate-180" : ""}`} />
@@ -612,7 +614,7 @@ export function Navbar() {
                           key={cat._id}
                           href={`/categories/${cat.slug}`}
                           onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-charcoal-700 hover:text-olive-800 hover:bg-olive-50 rounded-xl transition-colors"
+                          className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-charcoal-700 hover:text-olive-800 hover:bg-olive-50 rounded-xl transition-colors"
                         >
                           <span className="text-lg">{cat.emoji}</span>
                           {cat.name}
@@ -621,10 +623,11 @@ export function Navbar() {
                       <Link
                         href="/categories"
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-olive-700 mt-2"
+                        className="flex items-center gap-2 px-4 py-3.5 text-sm font-bold text-olive-700 mt-2"
                       >
                         View All <ChevronRight className="h-4 w-4" />
                       </Link>
+
                     </div>
                   )}
                 </div>

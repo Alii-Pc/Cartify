@@ -9,29 +9,31 @@ interface ProductGridProps {
   products: SafeProduct[];
   onResetFilters?: () => void;
   onAddToCart?: (product: SafeProduct) => void;
+  gridCols?: 2 | 3 | 4;
 }
 
 export function ProductGrid({
   products,
   onResetFilters,
   onAddToCart,
+  gridCols = 4,
 }: ProductGridProps) {
   if (!products || products.length === 0) {
     return (
-      <div className="card-surface flex flex-col items-center justify-center p-16 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-olive-100/80 text-olive-800">
-          <PackageOpen className="h-8 w-8" />
+      <div className="card-surface flex flex-col items-center justify-center p-16 text-center border border-dashed border-olive-200 bg-olive-50/30">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-olive-100 text-olive-800 shadow-inner">
+          <PackageOpen className="h-10 w-10 opacity-80" />
         </div>
-        <h3 className="mt-5 font-display text-xl font-semibold text-charcoal-900">
-          No products found
+        <h3 className="mt-6 font-display text-2xl font-bold text-charcoal-900">
+          No matches found
         </h3>
-        <p className="mt-2 max-w-sm text-sm text-charcoal-700/70">
-          We couldn&apos;t find any items matching your exact search criteria or filters. Try adjusting your selections.
+        <p className="mt-3 max-w-md text-sm text-charcoal-700/80 leading-relaxed">
+          We couldn&apos;t find any products matching your exact search criteria or filters. Try removing some filters or adjusting your search to find what you&apos;re looking for.
         </p>
         {onResetFilters && (
           <button
             onClick={onResetFilters}
-            className="mt-6 flex items-center gap-2 rounded-full bg-olive-700 px-6 py-2.5 text-sm font-semibold text-cream-50 transition-all hover:bg-olive-800 active:scale-95"
+            className="mt-8 flex items-center gap-2 rounded-full bg-olive-800 px-7 py-3 text-sm font-semibold text-cream-50 transition-all hover:bg-olive-900 active:scale-95 shadow-md"
           >
             <RefreshCw className="h-4 w-4" />
             Clear all filters
@@ -41,13 +43,20 @@ export function ProductGrid({
     );
   }
 
+  const gridClass = {
+    2: "grid-cols-2 gap-4 sm:gap-6",
+    3: "grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3",
+    4: "grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4",
+  }[gridCols];
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+    <div className={`grid ${gridClass}`}>
       {products.map((product) => (
         <ProductCard
           key={product._id}
           product={product}
           onAddToCart={onAddToCart}
+          compact={gridCols >= 4}
         />
       ))}
     </div>

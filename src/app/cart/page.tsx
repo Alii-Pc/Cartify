@@ -70,16 +70,16 @@ export default function CartPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 pb-24 lg:pb-0">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-charcoal-900 sm:text-4xl">
-            Shopping Cart
+            Shopping Cart ({itemCount} {itemCount === 1 ? "item" : "items"})
           </h1>
           <p className="mt-1 text-sm text-charcoal-700/70">
             {itemCount === 0
               ? "No items added yet"
-              : `You have ${itemCount} ${itemCount === 1 ? "item" : "items"} in your cart`}
+              : "Review your items before proceeding to checkout."}
           </p>
         </div>
 
@@ -159,32 +159,40 @@ export default function CartPage() {
                         ${product.price.toFixed(2)}{" "}
                         <span className="text-xs font-normal text-charcoal-700/60">each</span>
                       </p>
+                      {product.compareAtPrice && product.compareAtPrice > product.price && (
+                        <span className="text-xs font-semibold text-emerald-600">
+                          Save ${((product.compareAtPrice - product.price) * item.quantity).toFixed(2)}
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {/* Quantity and Line Total Controls */}
                   <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-olive-100">
-                    <div className="flex items-center border border-olive-200 rounded-full px-3 py-1.5 bg-white/80">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(product._id, item.quantity - 1)}
-                        className="p-1 text-charcoal-800 transition-colors hover:text-olive-700"
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </button>
-                      <span className="w-10 text-center font-display text-sm font-bold text-charcoal-900">
-                        {item.quantity}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={item.quantity >= product.stock}
-                        onClick={() => updateQuantity(product._id, item.quantity + 1)}
-                        className="p-1 text-charcoal-800 transition-colors hover:text-olive-700 disabled:opacity-30"
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </button>
+                    <div>
+                      <div className="flex items-center border border-olive-200 rounded-full px-1 py-1 bg-white/80">
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity(product._id, item.quantity - 1)}
+                          className="p-1.5 text-charcoal-800 transition-colors hover:text-olive-700"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-10 text-center font-display text-sm font-bold text-charcoal-900">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={item.quantity >= product.stock}
+                          onClick={() => updateQuantity(product._id, item.quantity + 1)}
+                          className="p-1.5 text-charcoal-800 transition-colors hover:text-olive-700 disabled:opacity-30"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-charcoal-500 mt-1 text-center">{product.stock} available</p>
                     </div>
 
                     <div className="text-right min-w-[80px]">
@@ -223,6 +231,30 @@ export default function CartPage() {
               <h2 className="font-display text-xl font-bold text-charcoal-900 border-b border-olive-100 pb-4">
                 Order Summary
               </h2>
+              <div className="rounded-xl bg-olive-50 border border-olive-100 p-3 space-y-2 mt-4">
+                {subtotal < 50 ? (
+                  <>
+                    <p className="text-xs font-semibold text-charcoal-800">
+                      Add ${(50 - subtotal).toFixed(2)} more for FREE shipping!
+                    </p>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-olive-200">
+                      <div
+                        className="h-full bg-olive-600 transition-all duration-500 ease-out"
+                        style={{ width: `${(subtotal / 50) * 100}%` }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-semibold text-charcoal-800">
+                      🎉 You've unlocked FREE shipping!
+                    </p>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-olive-200">
+                      <div className="h-full bg-olive-600 w-full" />
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Promo Code Form */}
               <form onSubmit={handleApplyPromo} className="space-y-2">
@@ -333,6 +365,23 @@ export default function CartPage() {
                 <span>30-day money-back guarantee &amp; free returns</span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {cartItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-olive-200 p-4 shadow-lg z-40 lg:hidden">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div>
+              <p className="text-xs text-charcoal-600">{itemCount} items</p>
+              <p className="font-display text-lg font-bold text-charcoal-900">${grandTotal.toFixed(2)}</p>
+            </div>
+            <Link
+              href={appliedPromo ? `/checkout?promo=${appliedPromo}` : "/checkout"}
+              className="rounded-full bg-olive-800 px-8 py-3 text-sm font-bold text-cream-50 shadow-md hover:bg-olive-900 transition-all"
+            >
+              Checkout
+            </Link>
           </div>
         </div>
       )}

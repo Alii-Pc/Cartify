@@ -241,6 +241,54 @@
   .animate-ai-teaser {
     animation: aiTeaserSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+
+  /* New animation keyframes */
+  @keyframes bottomNavIn {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes chipSlideIn {
+    from { opacity: 0; transform: translateX(-8px) scale(0.95); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+  }
+
+  @keyframes accordionOpen {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 500px; }
+  }
+
+  @keyframes shimmerSweep {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes stepPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(127, 143, 82, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(127, 143, 82, 0); }
+  }
+
+  .animate-bottom-nav {
+    animation: bottomNavIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .animate-chip-in {
+    animation: chipSlideIn 0.25s ease-out both;
+  }
+
+  .animate-accordion {
+    animation: accordionOpen 0.3s ease-out both;
+  }
+
+  .animate-shimmer-sweep {
+    background: linear-gradient(90deg, transparent 0%, rgba(245,246,240,0.6) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmerSweep 1.5s ease-in-out infinite;
+  }
+
+  .animate-step-pulse {
+    animation: stepPulse 2s ease-in-out infinite;
+  }
 }
 
 /* ── Admin Dashboard ── */
@@ -291,5 +339,21 @@
     background-position: right 0.5rem center;
     background-repeat: no-repeat;
     background-size: 1.5em 1.5em;
+  }
+
+  .safe-bottom {
+    @apply pb-20 md:pb-0;
+  }
+
+  .skeleton-base {
+    @apply rounded-lg bg-olive-100/60 relative overflow-hidden;
+  }
+
+  .skeleton-base::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent 0%, rgba(245,246,240,0.6) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmerSweep 1.5s ease-in-out infinite;
   }
 }

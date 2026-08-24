@@ -11,9 +11,10 @@ import type { SafeProduct } from "@/types";
 interface ProductCardProps {
   product: SafeProduct;
   onAddToCart?: (product: SafeProduct) => void;
+  compact?: boolean;
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, compact = false }: ProductCardProps) {
   const [added, setAdded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { addToCart } = useCart();
@@ -82,6 +83,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <img
               src={mainImage}
               alt={product.name}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               onError={() => setImageError(true)}
               className="h-full w-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-110"
               loading="lazy"
@@ -139,17 +141,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-4 pb-2">
+        <div className={`${compact ? "p-3 pb-1.5" : "p-4 pb-2"}`}>
           <div className="text-[11px] text-charcoal-500 uppercase tracking-wide truncate">
             {product.category.replace("-", " ")}
           </div>
 
-          <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-charcoal-900 leading-snug group-hover:text-olive-700 transition-colors">
+          <h3 className={`mt-1 line-clamp-2 font-semibold text-charcoal-900 leading-snug group-hover:text-olive-700 transition-colors ${compact ? "text-xs" : "text-sm"}`}>
             {product.name}
           </h3>
 
           <div className="mt-1.5 flex items-center gap-1.5">
-            <div className="flex items-center">
+            <div className="hidden sm:flex items-center">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
@@ -160,6 +162,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                   }`}
                 />
               ))}
+            </div>
+            <div className="flex sm:hidden items-center">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-sm font-semibold text-charcoal-800">
@@ -172,7 +177,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           </div>
 
           <div className="mt-2 flex items-baseline flex-wrap">
-            <span className="text-xl font-bold text-charcoal-900">
+            <span className={`font-bold text-charcoal-900 ${compact ? "text-lg" : "text-xl"}`}>
               ${product.price.toFixed(2)}
             </span>
             {product.compareAtPrice && product.compareAtPrice > product.price && (
@@ -180,14 +185,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 <span className="text-sm text-charcoal-400 line-through ml-2">
                   ${product.compareAtPrice.toFixed(2)}
                 </span>
-                <span className="text-sm font-semibold text-emerald-600 ml-2">
+                <span className="hidden sm:inline text-sm font-semibold text-emerald-600 ml-2">
                   Save ${(product.compareAtPrice - product.price).toFixed(2)}
                 </span>
               </>
             )}
           </div>
           
-          <div className="text-xs text-charcoal-500 mt-1.5 flex items-center gap-1">
+          <div className="hidden sm:flex text-xs text-charcoal-500 mt-1.5 items-center gap-1">
             <Truck className="h-3 w-3" />
             <span>Free Delivery</span>
           </div>
@@ -195,13 +200,13 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       </div>
 
       {/* Footer / CTA */}
-      <div className="px-4 pb-4 mt-2">
+      <div className={`px-4 pb-4 ${compact ? "mt-1" : "mt-2"}`}>
         <button
           type="button"
           disabled={product.stock <= 0}
           onClick={handleAddToCart}
           aria-label={`Add ${product.name} to cart`}
-          className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all ${
+          className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 sm:py-2.5 text-sm font-semibold transition-all ${
             product.stock <= 0
               ? "bg-charcoal-100 text-charcoal-400 cursor-not-allowed"
               : added
@@ -225,3 +230,4 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     </Link>
   );
 }
+

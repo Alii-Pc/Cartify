@@ -136,7 +136,7 @@ export default function ProductDetailsPage() {
   const specEntries = product.specifications ? Object.entries(product.specifications) : [];
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16 lg:px-8">
+    <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16 lg:px-8 pb-28 md:pb-0">
       {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="mb-12 text-sm font-medium text-charcoal-500 flex flex-wrap items-center gap-2">
         <Link href="/" className="hover:text-olive-700 transition-colors">Home</Link>
@@ -183,7 +183,7 @@ export default function ProductDetailsPage() {
 
           {/* Thumbnails */}
           {product.images && product.images.length > 1 && (
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:gap-2 scrollbar-hide justify-start md:justify-center">
               {product.images.map((img, idx) => {
                 const isSelected = selectedImage === img;
                 return (
@@ -192,7 +192,7 @@ export default function ProductDetailsPage() {
                     type="button"
                     onClick={() => setSelectedImage(img)}
                     style={{ animationDelay: `${idx * 100}ms` }}
-                    className={`animate-thumbnail-in relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl border-2 transition-all ${
+                    className={`animate-thumbnail-in relative flex-shrink-0 w-16 h-16 md:w-auto md:h-auto md:aspect-square overflow-hidden rounded-2xl border-2 transition-all ${
                       isSelected
                         ? "border-olive-700 ring-2 ring-olive-700"
                         : "border-olive-200 opacity-60 hover:opacity-100"
@@ -418,8 +418,29 @@ export default function ProductDetailsPage() {
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {relatedProducts.map((relProduct) => (
-              <ProductCard key={relProduct._id} product={relProduct} />
+              <ProductCard key={relProduct._id} product={relProduct} compact />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sticky Mobile Add to Cart */}
+      {product && product.stock > 0 && (
+        <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-olive-200 p-3 shadow-lg z-40 md:hidden">
+          <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto px-4">
+            <div>
+              <p className="font-display text-lg font-bold text-charcoal-900">${product.price.toFixed(2)}</p>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <p className="text-xs text-charcoal-500 line-through">${product.compareAtPrice.toFixed(2)}</p>
+              )}
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock <= 0}
+              className="flex-1 max-w-xs rounded-full bg-olive-800 py-3 text-sm font-bold text-cream-50 shadow-md hover:bg-olive-900 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              {added ? "Added to Bag" : "Add to Bag"}
+            </button>
           </div>
         </div>
       )}

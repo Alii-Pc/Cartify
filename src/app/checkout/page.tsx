@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/components/ui/Toast";
 import { Loader } from "@/components/ui/Loader";
+import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import {
   MapPin,
   Plus,
@@ -90,6 +91,7 @@ function CheckoutForm() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "cod">("stripe");
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
   // ── Fetch user's saved addresses ──
   useEffect(() => {
@@ -126,6 +128,19 @@ function CheckoutForm() {
       router.push("/products");
     }
   }, [cartItems, isCartLoading, router, addToast]);
+
+  // Step auto-advance logic
+  useEffect(() => {
+    if (selectedAddressId && !showAddressForm) {
+      if (paymentMethod) {
+        setCurrentStep(3);
+      } else {
+        setCurrentStep(2);
+      }
+    } else {
+      setCurrentStep(1);
+    }
+  }, [selectedAddressId, showAddressForm, paymentMethod]);
 
   // ── Address Form Validation ──
   const validateAddressForm = () => {
@@ -404,11 +419,15 @@ function CheckoutForm() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12 pb-24 lg:pb-0">
       <div className="flex items-center gap-2 text-xs font-semibold text-charcoal-700/60 uppercase tracking-widest mb-4">
         <Link href="/cart" className="hover:text-charcoal-900">Cart</Link>
         <ChevronRight className="h-3 w-3" />
         <span className="text-olive-800">Checkout</span>
+      </div>
+
+      <div className="mb-8">
+        <CheckoutSteps currentStep={currentStep} />
       </div>
 
       <h1 className="font-display text-2xl font-bold text-charcoal-900 sm:text-3xl lg:text-4xl mb-8">
@@ -429,10 +448,11 @@ function CheckoutForm() {
           <div className="card-surface p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-olive-100 pb-4 mb-6">
               <div>
-                <h2 className="font-display text-lg font-bold text-charcoal-900 sm:text-xl">
+                <h2 className="font-display text-lg font-bold text-charcoal-900 sm:text-xl flex items-center">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-olive-700 text-cream-50 text-xs font-bold mr-2">1</span>
                   Shipping Address
                 </h2>
-                <p className="text-xs text-charcoal-700/70">
+                <p className="text-xs text-charcoal-700/70 mt-1">
                   Select a saved shipping location or add a new one.
                 </p>
               </div>
@@ -730,8 +750,9 @@ function CheckoutForm() {
 
           {/* Payment Method Details */}
           <div className="card-surface p-6 sm:p-8">
-            <h2 className="font-display text-lg font-bold text-charcoal-900 sm:text-xl border-b border-olive-100 pb-4 mb-5 flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-olive-750" />
+            <h2 className="font-display text-lg font-bold text-charcoal-900 sm:text-xl border-b border-olive-100 pb-4 mb-5 flex items-center">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-olive-700 text-cream-50 text-xs font-bold mr-2">2</span>
+              <CreditCard className="h-5 w-5 text-olive-750 mr-2" />
               <span>Payment Method</span>
             </h2>
             
@@ -781,8 +802,9 @@ function CheckoutForm() {
         {/* Right Column: Order Summary (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
           <div className="card-surface p-6 sm:p-8 space-y-6">
-            <h2 className="font-display text-lg font-bold text-charcoal-900 border-b border-olive-100 pb-4 flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5 text-olive-750" />
+            <h2 className="font-display text-lg font-bold text-charcoal-900 border-b border-olive-100 pb-4 flex items-center">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-olive-700 text-cream-50 text-xs font-bold mr-2">3</span>
+              <ShoppingBag className="h-5 w-5 text-olive-750 mr-2" />
               <span>Order Summary</span>
             </h2>
 
@@ -902,6 +924,24 @@ function CheckoutForm() {
               )}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Sticky Mobile Summary */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-olive-200 p-4 shadow-lg z-40 lg:hidden">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div>
+            <p className="text-xs text-charcoal-600">Total</p>
+            <p className="font-display text-lg font-bold text-charcoal-900">${grandTotal.toFixed(2)}</p>
+          </div>
+          <button
+            type="button"
+            disabled={isPlacingOrder || !selectedAddressId || cartItems.length === 0}
+            onClick={handlePlaceOrder}
+            className="rounded-full bg-olive-800 px-6 py-2.5 text-sm font-bold text-cream-50 shadow-md hover:bg-olive-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPlacingOrder ? "Processing..." : paymentMethod === "cod" ? "Place Order" : "Pay with Stripe"}
+          </button>
         </div>
       </div>
     </div>
