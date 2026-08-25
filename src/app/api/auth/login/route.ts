@@ -60,7 +60,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const token = signToken({ userId: user._id.toString(), email: user.email });
+    const token = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role || "user",
+    });
 
     const safeUser: SafeUser = {
       id: user._id.toString(),
@@ -68,6 +72,7 @@ export async function POST(req: NextRequest) {
       email: user.email,
       avatar: user.avatar,
       hasGoogle: !!user.googleId,
+      role: user.role || "user",
       isVerified: user.isVerified,
       createdAt: user.createdAt.toISOString(),
     };

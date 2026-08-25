@@ -62,7 +62,7 @@ export async function PUT(
     }
 
     // Only the author can update their review
-    if (review.user.toString() !== user._id.toString()) {
+    if (!review.user || review.user.toString() !== user._id.toString()) {
       return errorResponse("Not authorized to update this review", 403);
     }
 
@@ -115,7 +115,7 @@ export async function DELETE(
     }
 
     // Only the author can delete their review
-    if (review.user.toString() !== user._id.toString()) {
+    if (!review.user || review.user.toString() !== user._id.toString()) {
       return errorResponse("Not authorized to delete this review", 403);
     }
 

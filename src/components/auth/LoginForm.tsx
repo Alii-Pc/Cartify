@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { loginUser } from "@/lib/authClient";
@@ -19,10 +19,20 @@ interface LoginFormProps {
 
 export function LoginForm({ showGoogleLogin = true }: LoginFormProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
+
+  const isAdminLoginPage = pathname.startsWith("/admin");
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "access_denied") {
+      setServerError("Access Denied: You must log in with an administrator account to access the Admin Panel.");
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -44,12 +54,15 @@ export function LoginForm({ showGoogleLogin = true }: LoginFormProps) {
       return;
     }
 
-    await refreshUser();
-    
-    let defaultRedirect = "/";
-    if (window.location.pathname === "/admin/login") {
-      defaultRedirect = "/admin";
+    // If logging in from the Admin login page, verify admin role
+    if (isAdminLoginPage && result.data && result.data.role !== "admin") {
+      setServerError("Access Denied: This account does not have administrator privileges.");
+      return;
     }
+
+    await refreshUser();
+
+    const defaultRedirect = isAdminLoginPage ? "/admin" : "/";
     const redirectTo = searchParams.get("redirectTo") || defaultRedirect;
     router.push(redirectTo);
     router.refresh();
@@ -72,7 +85,7 @@ export function LoginForm({ showGoogleLogin = true }: LoginFormProps) {
       <Input
         label="Email"
         type="email"
-        placeholder="you@example.com"
+        placeholder="admin@cartify.com"
         {...register("email")}
         error={errors.email?.message}
       />
@@ -80,25 +93,27 @@ export function LoginForm({ showGoogleLogin = true }: LoginFormProps) {
         <Input
           label="Password"
           type="password"
-          placeholder="Your password"
+          placeholder="••••••••"
           {...register("password")}
           error={errors.password?.message}
         />
-        <div className="mt-1.5 text-right">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-medium text-olive-700 hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
+        {!isAdminLoginPage && (
+          <div className="mt-1.5 text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-olive-700 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+        )}
       </div>
 
       <Button type="submit" isLoading={isSubmitting} className="w-full">
-        Log in
+        {isAdminLoginPage ? "Access Admin Portal" : "Log in"}
       </Button>
 
-      {showGoogleLogin && (
+      {showGoogleLogin && !isAdminLoginPage && (
         <>
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
@@ -113,12 +128,20 @@ export function LoginForm({ showGoogleLogin = true }: LoginFormProps) {
         </>
       )}
 
-      <p className="text-center text-sm text-charcoal-700/70 mt-4">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-olive-700 hover:underline">
-          Sign up
-        </Link>
-      </p>
+      {!isAdminLoginPage && (
+        <p className="text-center text-sm text-charcoal-700/70 mt-4">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="font-medium text-olive-700 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      )}
+
+      {isAdminLoginPage && (
+        <p className="text-center text-xs text-charcoal-500 mt-4">
+          🔒 Restricted area. All login attempts are audited and logged.
+        </p>
+      )}
     </form>
   );
 }

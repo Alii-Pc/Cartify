@@ -135,7 +135,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const jwtToken = signToken({ userId: user._id.toString(), email: user.email });
+    const jwtToken = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role || "user",
+    });
 
     const safeUser: SafeUser = {
       id: user._id.toString(),

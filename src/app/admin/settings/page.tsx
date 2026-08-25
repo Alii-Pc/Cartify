@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Loader } from "@/components/ui/Loader";
-import { Trash2, Settings, ShieldCheck, Store, KeyRound } from "lucide-react";
+import { Trash2, Settings, ShieldCheck, Store, KeyRound, RotateCcw, Truck } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<"store" | "security">("store");
+  const [activeTab, setActiveTab] = useState<"store" | "security" | "returns">("store");
   const [loading, setLoading] = useState(true);
 
   // Store Config State
@@ -20,6 +20,15 @@ export default function SettingsPage() {
     description: "",
   });
   const [savingBanner, setSavingBanner] = useState(false);
+
+  // Returns & Shipping Config State
+  const [returnConfig, setReturnConfig] = useState({
+    returnWindowDays: 30,
+    returnPolicyEnabled: true,
+    defaultCarrier: "FedEx Express",
+    autoApproveReturns: false,
+  });
+  const [savingReturns, setSavingReturns] = useState(false);
 
   // Security Config State
   const [passwordData, setPasswordData] = useState({
@@ -50,6 +59,17 @@ export default function SettingsPage() {
         if (promoSetting) {
           setPromoBanner(promoSetting.value);
         }
+
+        const returnWindow = settingsData.data.find((s: any) => s.key === "return_window_days");
+        const defaultCarrier = settingsData.data.find((s: any) => s.key === "default_carrier");
+        const returnEnabled = settingsData.data.find((s: any) => s.key === "return_policy_enabled");
+
+        setReturnConfig({
+          returnWindowDays: returnWindow ? Number(returnWindow.value) : 30,
+          returnPolicyEnabled: returnEnabled !== undefined ? returnEnabled.value : true,
+          defaultCarrier: defaultCarrier ? defaultCarrier.value : "FedEx Express",
+          autoApproveReturns: false,
+        });
       }
 
       if (couponsData.success) {
@@ -59,6 +79,34 @@ export default function SettingsPage() {
       console.error("Failed to load settings or coupons");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveReturnsConfig = async () => {
+    setSavingReturns(true);
+    try {
+      await Promise.all([
+        fetch("/api/admin/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "return_window_days", value: returnConfig.returnWindowDays }),
+        }),
+        fetch("/api/admin/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "return_policy_enabled", value: returnConfig.returnPolicyEnabled }),
+        }),
+        fetch("/api/admin/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "default_carrier", value: returnConfig.defaultCarrier }),
+        }),
+      ]);
+      addToast("success", "Return & Shipping settings saved!");
+    } catch {
+      addToast("error", "Failed to save return settings.");
+    } finally {
+      setSavingReturns(false);
     }
   };
 
@@ -186,6 +234,17 @@ export default function SettingsPage() {
           >
             <Store className="h-5 w-5" />
             <span className="font-medium">Store Config</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("returns")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              activeTab === "returns"
+                ? "bg-olive-800 text-white shadow-md"
+                : "text-charcoal-600 hover:bg-olive-100 hover:text-olive-800"
+            }`}
+          >
+            <RotateCcw className="h-5 w-5" />
+            <span className="font-medium">Returns &amp; Shipping</span>
           </button>
           <button
             onClick={() => setActiveTab("security")}
@@ -400,6 +459,101 @@ export default function SettingsPage() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "returns" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="admin-card p-6 rounded-2xl bg-white border border-olive-100 shadow-sm space-y-6">
+                <div>
+                  <h2 className="font-display text-xl font-semibold text-charcoal-900 flex items-center gap-2">
+                    <RotateCcw className="h-5 w-5 text-olive-700" />
+                    <span>Return Policy &amp; Window</span>
+                  </h2>
+                  <p className="mt-1 text-sm text-charcoal-600">
+                    Configure customer return eligibility timeframes and standard fulfillment options.
+                  </p>
+                </div>
+
+                <div className="space-y-5 bg-gray-50 p-5 rounded-xl border border-gray-100 text-sm">
+                  {/* Enable Returns Toggle */}
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={returnConfig.returnPolicyEnabled}
+                      onChange={(e) =>
+                        setReturnConfig((prev) => ({
+                          ...prev,
+                          returnPolicyEnabled: e.target.checked,
+                        }))
+                      }
+                      className="h-5 w-5 rounded border-olive-300 text-olive-600 focus:ring-olive-500 cursor-pointer"
+                    />
+                    <div>
+                      <span className="font-bold text-charcoal-900">Allow Customer Returns</span>
+                      <p className="text-xs text-charcoal-500">
+                        When enabled, customers can submit returns for delivered orders.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Return Window Days */}
+                  <div className="space-y-1.5 pt-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-700">
+                      Standard Return Window (Days from Order Date)
+                    </label>
+                    <div className="max-w-xs">
+                      <input
+                        type="number"
+                        min="1"
+                        max="180"
+                        value={returnConfig.returnWindowDays}
+                        onChange={(e) =>
+                          setReturnConfig((prev) => ({
+                            ...prev,
+                            returnWindowDays: parseInt(e.target.value) || 30,
+                          }))
+                        }
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-olive-500 focus:ring-1 focus:ring-olive-500/20 text-sm font-semibold"
+                      />
+                    </div>
+                    <p className="text-[11px] text-charcoal-400">
+                      Default is 30 days. Customers cannot request returns on orders past this window.
+                    </p>
+                  </div>
+
+                  {/* Default Courier */}
+                  <div className="space-y-1.5 pt-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-700">
+                      Default Courier / Shipping Partner
+                    </label>
+                    <div className="max-w-md">
+                      <input
+                        type="text"
+                        placeholder="e.g. FedEx Express, DHL, UPS, USPS"
+                        value={returnConfig.defaultCarrier}
+                        onChange={(e) =>
+                          setReturnConfig((prev) => ({
+                            ...prev,
+                            defaultCarrier: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-olive-500 focus:ring-1 focus:ring-olive-500/20 text-sm font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    disabled={savingReturns}
+                    onClick={handleSaveReturnsConfig}
+                    className="btn-primary shadow-sm"
+                  >
+                    {savingReturns ? "Saving..." : "Save Returns Configuration"}
+                  </button>
+                </div>
               </div>
             </div>
           )}

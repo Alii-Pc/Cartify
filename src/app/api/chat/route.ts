@@ -58,6 +58,9 @@ ${productContext}
 IMPORTANT: When recommending a product, you MUST include its image in your response using markdown syntax: ![Product Name](Image URL)
 Example: "I recommend the Classic Leather Bag. ![Classic Leather Bag](https://example.com/image.jpg)"
 
+If the user asks to speak with a human, support agent, representative, live chat, or needs human assistance with complex order issues or returns:
+- Respond politely and inform them clearly: "I have connected you with our support team and someone will be with you soon."
+
 If the user asks about something not in the inventory, politely inform them that you only have information about Cartify products.`;
 
     // Gemini API strictly requires alternating roles (user, model, user, model)
@@ -91,9 +94,18 @@ If the user asks about something not in the inventory, politely inform them that
       },
     });
 
+    const replyText = response.text || "";
+
+    // Check if user or response mentions human support / agent
+    const humanSupportRegex = /(human|agent|support agent|live support|live chat|representative|customer support|customer care|talk to someone|connect me)/i;
+    const isSupportRequested =
+      humanSupportRegex.test(message) ||
+      humanSupportRegex.test(replyText);
+
     return NextResponse.json({
       success: true,
-      text: response.text,
+      text: replyText,
+      suggestLiveSupport: isSupportRequested,
     });
   } catch (error: any) {
     console.error("Gemini API Error:", error);

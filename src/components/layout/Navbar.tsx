@@ -4,9 +4,23 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Menu, X, Search, ShoppingCart, User, Heart, LogOut,
-  PackageCheck, ChevronDown, Settings, Truck, ChevronRight,
-  Sparkles, HelpCircle, UserPlus, LogIn, Loader2,
+  Menu,
+  X,
+  Search,
+  ShoppingCart,
+  User,
+  Heart,
+  LogOut,
+  PackageCheck,
+  ChevronDown,
+  Settings,
+  Truck,
+  ChevronRight,
+  Sparkles,
+  HelpCircle,
+  UserPlus,
+  LogIn,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -31,16 +45,17 @@ export function Navbar() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  
+
   const [scrolled, setScrolled] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [categories, setCategories] = useState<SafeCategory[]>([]);
-  
+
+  // Search Spotlight Modal States
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SafeProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -50,7 +65,7 @@ export function Navbar() {
   const { user, isLoggedIn, logout } = useAuth();
   const { itemCount } = useCart();
   const { wishlistCount } = useWishlist();
-  
+
   // Call useFCM to initialize
   useFCM();
 
@@ -63,17 +78,17 @@ export function Navbar() {
 
   // Fetch categories for mega menu on mount
   useEffect(() => {
-    fetch('/api/categories')
-      .then(res => res.json())
-      .then(data => {
-        if(data.success) {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
           setCategories(data.data);
         }
       })
       .catch(console.error);
   }, []);
 
-  // Close dropdown when clicking outside
+  // Close user dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -83,6 +98,21 @@ export function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Global Keyboard Shortcuts (Cmd+K / Ctrl+K to open, Escape to close)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOverlayOpen((prev) => !prev);
+      }
+      if (e.key === "Escape" && searchOverlayOpen) {
+        setSearchOverlayOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [searchOverlayOpen]);
 
   // Debounced live search
   useEffect(() => {
@@ -103,16 +133,16 @@ export function Navbar() {
       } finally {
         setIsSearching(false);
       }
-    }, 300);
+    }, 250);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Focus search input when overlay opens
+  // Auto-focus search input when opened
   useEffect(() => {
     if (searchOverlayOpen && searchInputRef.current) {
       setTimeout(() => {
         searchInputRef.current?.focus();
-      }, 100);
+      }, 50);
     }
   }, [searchOverlayOpen]);
 
@@ -143,7 +173,7 @@ export function Navbar() {
   return (
     <>
       <PromoBanner />
-      
+
       {/* 1. Top Utility Bar */}
       <div className="hidden md:flex items-center justify-between bg-charcoal-900 text-cream-100/70 py-1.5 px-6 lg:px-8 text-[11px] font-medium tracking-wide">
         <div className="flex items-center gap-2">
@@ -156,27 +186,36 @@ export function Navbar() {
             <span>Help</span>
           </Link>
           <span className="text-charcoal-700">|</span>
-          <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          <Link href="/about" className="hover:text-white transition-colors">
+            About
+          </Link>
           <span className="text-charcoal-700">|</span>
           {isLoggedIn && user ? (
             <span className="text-white font-semibold">Hi, {user.name}</span>
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/signup" className="hover:text-white transition-colors">Join Us</Link>
+              <Link href="/signup" className="hover:text-white transition-colors">
+                Join Us
+              </Link>
               <span className="text-charcoal-700">|</span>
-              <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
+              <Link href="/login" className="hover:text-white transition-colors">
+                Sign In
+              </Link>
             </div>
           )}
         </div>
       </div>
 
-      <header 
-        className={`sticky top-0 z-50 border-b border-olive-100 bg-cream-50/95 backdrop-blur-xl transition-all duration-300`}
+      <header
+        className="sticky top-0 z-50 border-b border-olive-100 bg-cream-50/95 backdrop-blur-xl transition-all duration-300"
         onMouseLeave={() => setMegaMenuOpen(false)}
       >
         {/* 2. Main Navigation Bar */}
-        <nav className={`mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-8 transition-all duration-300 ${scrolled ? 'py-2.5' : 'py-4'}`}>
-          
+        <nav
+          className={`mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-8 transition-all duration-300 ${
+            scrolled ? "py-2.5" : "py-4"
+          }`}
+        >
           <div className="flex items-center gap-4">
             {/* Mobile toggle */}
             <button
@@ -186,7 +225,7 @@ export function Navbar() {
             >
               <Menu className="h-6 w-6" />
             </button>
-            
+
             <Link
               href="/"
               className="font-display text-2xl font-bold text-olive-900 transition-opacity hover:opacity-90 flex items-center gap-1"
@@ -216,14 +255,14 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Right side icons */}
-          <div className="flex items-center gap-3 sm:gap-4 ml-auto">
-            
-            {/* Search Toggle */}
+          {/* Right side icons & Search Trigger */}
+          <div className="flex items-center gap-2.5 sm:gap-3 ml-auto">
+            {/* Search Icon Button */}
             <button
+              type="button"
               onClick={() => setSearchOverlayOpen(true)}
               aria-label="Search"
-              className="hidden md:flex rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
+              className="rounded-full p-2 text-olive-900 transition-colors hover:bg-olive-100"
             >
               <Search className="h-5 w-5" />
             </button>
@@ -268,12 +307,16 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={() => setUserDropdownOpen((prev) => !prev)}
-                    className="flex items-center gap-2 rounded-full border border-olive-200 bg-white/90 pl-1 pr-3 py-1 text-sm font-semibold text-charcoal-800 shadow-sm transition-all hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-olive-200"
+                    className="flex items-center gap-2 rounded-full border border-olive-200 bg-white/90 pl-1 pr-3 py-1 text-sm font-semibold text-charcoal-800 shadow-xs transition-all hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-olive-200"
                   >
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-olive-800 text-xs font-bold text-cream-50 transition-transform">
                       <User className="h-4 w-4" />
                     </div>
-                    <ChevronDown className={`h-3.5 w-3.5 text-charcoal-700/60 transition-transform ${userDropdownOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 text-charcoal-700/60 transition-transform ${
+                        userDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
 
                   {userDropdownOpen && (
@@ -341,7 +384,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 rounded-full bg-olive-900 text-white px-5 py-2 text-sm font-semibold shadow-sm transition-all hover:bg-olive-800 hover:shadow"
+                  className="flex items-center gap-2 rounded-full bg-olive-900 text-white px-5 py-2 text-sm font-semibold shadow-xs transition-all hover:bg-olive-800 hover:shadow"
                 >
                   <User className="h-4 w-4" />
                   <span>Sign In</span>
@@ -353,7 +396,7 @@ export function Navbar() {
 
         {/* 3. Category Mega-Menu */}
         {megaMenuOpen && (
-          <div 
+          <div
             className="absolute left-0 right-0 top-full bg-white border-b border-olive-100 shadow-xl animate-mega-menu overflow-hidden z-40"
             onMouseEnter={() => setMegaMenuOpen(true)}
             onMouseLeave={() => setMegaMenuOpen(false)}
@@ -361,8 +404,8 @@ export function Navbar() {
             <div className="mx-auto max-w-7xl px-6 lg:px-8 py-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-display text-lg font-bold text-olive-900">Explore Categories</h3>
-                <Link 
-                  href="/categories" 
+                <Link
+                  href="/categories"
                   className="text-sm font-semibold text-olive-700 hover:text-olive-900 flex items-center gap-1 group"
                   onClick={() => setMegaMenuOpen(false)}
                 >
@@ -370,7 +413,7 @@ export function Navbar() {
                   <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {categories.slice(0, 8).map((cat) => (
                   <Link
@@ -397,7 +440,7 @@ export function Navbar() {
                     </div>
                   </Link>
                 ))}
-                
+
                 {categories.length === 0 && (
                   <div className="col-span-full py-8 flex flex-col items-center justify-center text-charcoal-700/50">
                     <Loader2 className="h-8 w-8 animate-spin mb-2" />
@@ -410,130 +453,216 @@ export function Navbar() {
         )}
       </header>
 
-      {/* 4. Full-Screen Search Overlay */}
+      {/* 4. Sleek Floating Spotlight Search (Does NOT cover the whole screen) */}
       {searchOverlayOpen && (
-        <div className="fixed inset-0 z-[100] bg-white animate-search-overlay overflow-y-auto">
-          <div className="mx-auto max-w-5xl px-6 py-6 lg:px-8">
-            <div className="flex justify-end mb-8">
-              <button
-                onClick={() => {
-                  setSearchOverlayOpen(false);
-                  setSearchQuery("");
-                }}
-                className="rounded-full p-2 text-charcoal-900 hover:bg-cream-100 transition-colors"
-                aria-label="Close search"
-              >
-                <X className="h-8 w-8" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-14 sm:pt-20 px-4 sm:px-6">
+          {/* Soft Dimmed Blur Backdrop */}
+          <div
+            className="fixed inset-0 bg-charcoal-950/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+            onClick={() => {
+              setSearchOverlayOpen(false);
+              setSearchQuery("");
+            }}
+          />
 
-            <form onSubmit={handleSearchOverlaySubmit} className="relative mb-12">
-              <div className="flex items-center border-b-2 border-charcoal-200 focus-within:border-olive-800 pb-4 transition-colors">
-                <Search className="h-8 w-8 text-charcoal-400 mr-4" />
+          {/* Floating Search Container */}
+          <div className="relative w-full max-w-2xl bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-olive-200/80 overflow-hidden z-10 animate-in fade-in zoom-in-95 slide-in-from-top-4 duration-200">
+            {/* Header Search Input Bar */}
+            <form
+              onSubmit={handleSearchOverlaySubmit}
+              className="relative border-b border-olive-100 p-3.5 sm:p-4 bg-white"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-olive-100 text-olive-800 shrink-0">
+                  {isSearching ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-olive-700" />
+                  ) : (
+                    <Search className="h-5 w-5" />
+                  )}
+                </div>
+
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="What are you looking for?"
+                  placeholder="Search products, categories, or keywords..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent text-2xl sm:text-3xl font-display font-semibold text-charcoal-900 placeholder:text-charcoal-300 focus:outline-none"
+                  className="w-full bg-transparent text-base sm:text-lg font-semibold text-charcoal-900 placeholder:text-charcoal-400 focus:outline-none"
                 />
-                {searchQuery && (
+
+                {searchQuery ? (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="p-2 text-charcoal-400 hover:text-charcoal-800 transition-colors"
+                    className="p-1.5 rounded-full text-charcoal-400 hover:text-charcoal-800 hover:bg-olive-100 transition-colors"
                   >
-                    <X className="h-6 w-6" />
+                    <X className="h-4 w-4" />
                   </button>
+                ) : (
+                  <kbd className="hidden sm:inline-flex items-center rounded-lg border border-olive-200 bg-cream-100 px-2 py-0.5 text-[10px] font-mono font-semibold text-charcoal-500">
+                    ESC
+                  </kbd>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchOverlayOpen(false);
+                    setSearchQuery("");
+                  }}
+                  className="p-1.5 rounded-full text-charcoal-500 hover:text-charcoal-900 hover:bg-olive-100 transition-colors sm:hidden"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             </form>
 
-            <div className="min-h-[400px]">
+            {/* Results / Suggestion Body */}
+            <div className="max-h-[60vh] overflow-y-auto p-4 sm:p-5">
               {!searchQuery.trim() ? (
-                <div>
-                  <h3 className="text-sm font-semibold text-charcoal-500 uppercase tracking-widest mb-6">Popular Categories</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {categories.slice(0, 6).map((cat) => (
+                <div className="space-y-5">
+                  {/* Trending Searches */}
+                  <div>
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500 mb-2.5 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                      <span>Trending Searches</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "Ceramic Vase",
+                        "Linen Apron",
+                        "Olive Oil Dispenser",
+                        "Coffee Mug",
+                        "Handmade Bowl",
+                      ].map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => setSearchQuery(term)}
+                          className="rounded-full border border-olive-200/80 bg-cream-50 px-3.5 py-1.5 text-xs font-medium text-charcoal-800 hover:border-olive-600 hover:bg-olive-50 transition-colors"
+                        >
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Popular Categories */}
+                  <div>
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500 mb-2.5">
+                      Popular Categories
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {categories.slice(0, 6).map((cat) => (
+                        <Link
+                          key={cat._id}
+                          href={`/categories/${cat.slug}`}
+                          onClick={() => setSearchOverlayOpen(false)}
+                          className="flex items-center gap-2.5 p-2.5 rounded-xl border border-olive-100 bg-white hover:border-olive-300 hover:bg-cream-50 transition-colors group"
+                        >
+                          <span className="text-lg">{cat.emoji}</span>
+                          <span className="text-xs font-semibold text-charcoal-800 group-hover:text-olive-900 truncate">
+                            {cat.name}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : isSearching ? (
+                <div className="py-12 flex flex-col items-center justify-center text-charcoal-400 gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-olive-700" />
+                  <p className="text-xs font-medium">Searching catalog...</p>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-charcoal-500 mb-2 px-1">
+                    <span>Products ({searchResults.length})</span>
+                    <span>Press Enter to view all</span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {searchResults.map((product) => (
                       <Link
-                        key={cat._id}
-                        href={`/categories/${cat.slug}`}
-                        onClick={() => setSearchOverlayOpen(false)}
-                        className="flex items-center gap-2 rounded-full border border-olive-200 px-5 py-2.5 text-sm font-medium text-charcoal-800 hover:border-olive-800 hover:bg-olive-50 transition-colors"
+                        key={product._id}
+                        href={`/products/${product.slug}`}
+                        onClick={() => {
+                          setSearchOverlayOpen(false);
+                          setSearchQuery("");
+                        }}
+                        className="flex items-center gap-3.5 p-2.5 rounded-2xl hover:bg-olive-50/80 transition-colors group border border-transparent hover:border-olive-200"
                       >
-                        <span>{cat.emoji}</span>
-                        <span>{cat.name}</span>
+                        <div className="h-12 w-12 shrink-0 rounded-xl bg-cream-100 border border-olive-100 overflow-hidden relative">
+                          {product.images?.[0] ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-xs text-olive-600">
+                              Img
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-charcoal-900 group-hover:text-olive-800 truncate">
+                            {product.name}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] uppercase font-bold text-olive-700 bg-olive-100/70 px-1.5 py-0.2 rounded">
+                              {product.category}
+                            </span>
+                            <span className="text-xs font-bold text-charcoal-900">
+                              ${product.price.toFixed(2)}
+                            </span>
+                            {product.compareAtPrice && product.compareAtPrice > product.price && (
+                              <span className="text-[11px] text-charcoal-400 line-through">
+                                ${product.compareAtPrice.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <ChevronRight className="h-4 w-4 text-charcoal-400 group-hover:text-olive-800 group-hover:translate-x-0.5 transition-all shrink-0" />
                       </Link>
                     ))}
                   </div>
+
+                  <Link
+                    href={`/products?q=${encodeURIComponent(searchQuery)}`}
+                    onClick={() => {
+                      setSearchOverlayOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className="flex items-center justify-center gap-2 w-full mt-3 py-2.5 rounded-xl bg-olive-800 text-cream-50 text-xs font-bold hover:bg-olive-900 transition-colors shadow-xs"
+                  >
+                    <span>View all results for &ldquo;{searchQuery}&rdquo;</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Link>
                 </div>
               ) : (
-                <div>
-                  <h3 className="text-sm font-semibold text-charcoal-500 uppercase tracking-widest mb-6">
-                    {isSearching ? "Searching..." : "Search Results"}
-                  </h3>
-                  
-                  {isSearching ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-olive-600" />
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    <div className="flex flex-col">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                        {searchResults.map((product) => (
-                          <Link
-                            key={product._id}
-                            href={`/products/${product.slug}`}
-                            onClick={() => setSearchOverlayOpen(false)}
-                            className="flex items-center gap-4 p-3 rounded-2xl hover:bg-cream-50 transition-colors group"
-                          >
-                            <div className="h-16 w-16 shrink-0 rounded-xl bg-white border border-olive-100 overflow-hidden relative">
-                              {product.images?.[0] ? (
-                                <img 
-                                  src={product.images[0]} 
-                                  alt={product.name} 
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="h-full w-full bg-cream-100 flex items-center justify-center">
-                                  <Sparkles className="h-6 w-6 text-olive-300" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-charcoal-900 group-hover:text-olive-700 truncate">
-                                {product.name}
-                              </h4>
-                              <p className="text-xs text-charcoal-500 capitalize mb-1">{product.category}</p>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-olive-900">${product.price.toFixed(2)}</span>
-                                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                                  <span className="text-xs text-charcoal-400 line-through">
-                                    ${product.compareAtPrice.toFixed(2)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                      
-                      <Link
-                        href={`/products?q=${encodeURIComponent(searchQuery)}`}
-                        onClick={() => setSearchOverlayOpen(false)}
-                        className="inline-flex items-center gap-2 mx-auto mt-4 px-6 py-3 rounded-full bg-olive-900 text-white font-semibold hover:bg-olive-800 transition-colors"
-                      >
-                        View all results
-                        <ChevronRight className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <p className="text-lg text-charcoal-600 mb-4">No results found for &ldquo;{searchQuery}&rdquo;</p>
-                      <p className="text-sm text-charcoal-400">Try checking your spelling or using more general terms.</p>
-                    </div>
-                  )}
+                <div className="text-center py-8">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-100 text-charcoal-400 mx-auto mb-3">
+                    <Search className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold text-charcoal-800">
+                    No products found for &ldquo;{searchQuery}&rdquo;
+                  </p>
+                  <p className="text-xs text-charcoal-500 mt-1">
+                    Try checking your spelling or using different keywords.
+                  </p>
+                  <Link
+                    href="/products"
+                    onClick={() => {
+                      setSearchOverlayOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className="inline-block mt-3 text-xs font-bold text-olive-800 hover:underline"
+                  >
+                    Browse all products &rarr;
+                  </Link>
                 </div>
               )}
             </div>
@@ -545,11 +674,11 @@ export function Navbar() {
       {isOpen && (
         <div className="fixed inset-0 z-[90] md:hidden">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-charcoal-900/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Drawer Panel */}
           <div className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-cream-50 flex flex-col h-full animate-mobile-drawer shadow-2xl">
             {/* Drawer Header */}
@@ -586,7 +715,7 @@ export function Navbar() {
 
               {/* Mobile Nav Links */}
               <div className="px-4 py-4 flex flex-col">
-                {NAV_LINKS.filter(l => l.label !== "Categories").map((link) => (
+                {NAV_LINKS.filter((l) => l.label !== "Categories").map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -596,7 +725,7 @@ export function Navbar() {
                     {link.label}
                   </Link>
                 ))}
-                
+
                 {/* Categories Accordion */}
                 <div className="mt-2">
                   <button
@@ -604,9 +733,13 @@ export function Navbar() {
                     className="flex w-full items-center justify-between px-4 py-3.5 text-lg font-semibold text-charcoal-800 hover:text-olive-800 hover:bg-olive-100/50 rounded-xl transition-colors"
                   >
                     <span>Categories</span>
-                    <ChevronDown className={`h-5 w-5 transition-transform ${mobileCategoriesOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      className={`h-5 w-5 transition-transform ${
+                        mobileCategoriesOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
-                  
+
                   {mobileCategoriesOpen && (
                     <div className="mt-2 pl-4 pr-2 flex flex-col gap-1 border-l-2 border-olive-100 ml-6">
                       {categories.map((cat) => (
@@ -627,7 +760,6 @@ export function Navbar() {
                       >
                         View All <ChevronRight className="h-4 w-4" />
                       </Link>
-
                     </div>
                   )}
                 </div>
@@ -654,7 +786,7 @@ export function Navbar() {
                     </span>
                   )}
                 </Link>
-                
+
                 <Link
                   href="/wishlist"
                   onClick={() => setIsOpen(false)}
@@ -686,7 +818,7 @@ export function Navbar() {
                       <p className="text-xs text-charcoal-500">{user.email}</p>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     <button
                       onClick={() => {
@@ -739,13 +871,13 @@ export function Navbar() {
         </div>
       )}
 
-      <ProfileSettingsModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <ProfileSettingsModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
-      <AccountSettingsModal 
-        isOpen={isSettingsModalOpen} 
-        onClose={() => setIsSettingsModalOpen(false)} 
+      <AccountSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
       />
     </>
   );

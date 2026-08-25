@@ -60,12 +60,18 @@ export async function GET(req: NextRequest) {
     await connectDB();
 
     const total = await Review.countDocuments({ product: productId });
-    const reviews = await Review.find({ product: productId })
+    const rawReviews = await Review.find({ product: productId })
       .populate("user", "name")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
+
+    const reviews = rawReviews.map((r: any) => ({
+      ...r,
+      user: r.user || { _id: "guest", name: r.reviewerName || "Shopper" },
+      reviewerName: r.user?.name || r.reviewerName || "Shopper",
+    }));
 
     return successResponse({
       reviews,
@@ -82,17 +88,13 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/reviews
- * Create a new review
+ * Create a new review (Open to all customers)
  */
 export async function POST(req: NextRequest) {
   try {
     const user = await authenticateUser(req);
-    if (!user) {
-      return errorResponse("Authentication required", 401);
-    }
-
     const body = await req.json();
-    const { productId, rating, comment } = body;
+    const { productId, rating, comment, name } = body;
 
     if (!productId || !rating || !comment) {
       return errorResponse("Product ID, rating, and comment are required", 400);
@@ -110,44 +112,58 @@ export async function POST(req: NextRequest) {
       return errorResponse("Product not found", 404);
     }
 
-    // Check if user already reviewed this product
-    const existingReview = await Review.findOne({
-      user: user._id,
-      product: productId,
-    });
-    if (existingReview) {
-      return errorResponse("You have already reviewed this product", 400);
+    let isVerifiedPurchase = false;
+
+    if (user) {
+      // Check if logged-in user already reviewed this product
+      const existingReview = await Review.findOne({
+        user: user._id,
+        product: productId,
+      });
+      if (existingReview) {
+        return errorResponse("You have already reviewed this product", 400);
+      }
+
+      // Check if user has purchased the product to award verified buyer badge
+      const hasPurchased = await Order.findOne({
+        userId: user._id,
+        "items.productId": productId,
+        status: { $ne: "cancelled" },
+      });
+
+      isVerifiedPurchase = !!hasPurchased;
+
+      // Create review with authenticated user link
+      const newReview = new Review({
+        user: user._id,
+        reviewerName: user.name,
+        product: productId,
+        rating,
+        comment: comment.trim(),
+        isVerifiedPurchase,
+      });
+
+      await newReview.save();
+      await updateProductRating(productId);
+
+      return successResponse(newReview, "Review added successfully", 201);
+    } else {
+      // Allow guest reviewers to review products directly!
+      const reviewerName = name?.trim() || "Shopper";
+
+      const newReview = new Review({
+        reviewerName,
+        product: productId,
+        rating,
+        comment: comment.trim(),
+        isVerifiedPurchase: false,
+      });
+
+      await newReview.save();
+      await updateProductRating(productId);
+
+      return successResponse(newReview, "Review added successfully", 201);
     }
-
-    // Check if user has purchased the product
-    const hasPurchased = await Order.findOne({
-      userId: user._id,
-      "items.productId": productId,
-      status: { $ne: "cancelled" },
-    });
-
-    if (!hasPurchased) {
-      return errorResponse(
-        "Only verified purchasers can review this product.",
-        403
-      );
-    }
-
-    // Create review
-    const newReview = new Review({
-      user: user._id,
-      product: productId,
-      rating,
-      comment,
-      isVerifiedPurchase: true,
-    });
-
-    await newReview.save();
-
-    // Update product stats
-    await updateProductRating(productId);
-
-    return successResponse(newReview, "Review added successfully", 201);
   } catch (err: any) {
     console.error("POST /api/reviews error:", err);
     return errorResponse("Failed to add review", 500);

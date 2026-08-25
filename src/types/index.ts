@@ -123,8 +123,17 @@ export interface ShippingAddress {
   phone: string;
 }
 
-// ── Order Types ──
-export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+// ── Order & Tracking Types ──
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "packed"
+  | "shipped"
+  | "out_for_delivery"
+  | "delivered"
+  | "cancelled";
+
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type PaymentMethod = "stripe" | "cod";
 
@@ -135,6 +144,14 @@ export interface OrderItem {
   image: string;
   price: number;
   quantity: number;
+}
+
+export interface TrackingEvent {
+  status: OrderStatus | string;
+  title: string;
+  description?: string | undefined;
+  location?: string | undefined;
+  timestamp: string;
 }
 
 export interface SafeOrder {
@@ -157,6 +174,14 @@ export interface SafeOrder {
   stripePaymentIntentId?: string | undefined;
   paidAt?: string | undefined;
   invoiceNumber?: string | undefined;
+  // Tracking fields
+  courier?: string | undefined;
+  trackingNumber?: string | undefined;
+  trackingUrl?: string | undefined;
+  estimatedDelivery?: string | undefined;
+  shippedAt?: string | undefined;
+  deliveredAt?: string | undefined;
+  trackingHistory?: TrackingEvent[] | undefined;
   createdAt: string;
   updatedAt: string;
 }
@@ -168,3 +193,75 @@ export interface UserAddress extends ShippingAddress {
   createdAt: string;
   updatedAt: string;
 }
+
+// ── Return & Refund Types ──
+export type ReturnStatus =
+  | "requested"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "pickup"
+  | "received"
+  | "refund_processing"
+  | "refunded"
+  | "cancelled";
+
+export type ReturnReason =
+  | "defective"
+  | "wrong_item"
+  | "not_as_described"
+  | "quality_issue"
+  | "changed_mind"
+  | "size_fit"
+  | "other";
+
+export interface ReturnItem {
+  productId: string;
+  name: string;
+  slug: string;
+  image: string;
+  price: number;
+  quantity: number;
+  reason: ReturnReason;
+  reasonDetails?: string | undefined;
+}
+
+export interface ReturnTimelineEvent {
+  status: ReturnStatus;
+  title: string;
+  note?: string | undefined;
+  updatedBy?: "customer" | "admin" | "system" | undefined;
+  timestamp: string;
+}
+
+export interface SafeReturnRequest {
+  _id: string;
+  returnNumber: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  user?: {
+    name?: string | undefined;
+    email?: string | undefined;
+  } | undefined;
+  items: ReturnItem[];
+  refundAmount: number;
+  refundMethod: "original_payment" | "store_credit" | "manual";
+  refundStatus: "pending" | "processing" | "completed" | "failed";
+  refundTransactionId?: string | undefined;
+  status: ReturnStatus;
+  rejectionReason?: string | undefined;
+  customerNote?: string | undefined;
+  adminNotes?: string | undefined;
+  images: string[];
+  pickupDetails?: {
+    courier?: string | undefined;
+    trackingNumber?: string | undefined;
+    scheduledDate?: string | undefined;
+    address?: string | undefined;
+  } | undefined;
+  timeline: ReturnTimelineEvent[];
+  createdAt: string;
+  updatedAt: string;
+}
+

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ShopLayout } from "@/components/layout/ShopLayout";
-import { CheckCircle, Truck, Package, MapPin, Calendar, CreditCard, ChevronRight, Download, CreditCard as CreditCardIcon, FileText, CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle, Truck, Package, MapPin, Calendar, CreditCard, ChevronRight, Download, CreditCard as CreditCardIcon, FileText, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import type { SafeOrder } from "@/types";
 
@@ -200,36 +200,71 @@ export default function OrderConfirmationPage() {
                 </div>
               </div>
 
-              {/* Order Tracking Timeline */}
-              <div className="card-surface p-6 sm:p-8">
-                <h2 className="font-display text-base font-bold text-charcoal-900 mb-6 flex items-center gap-2">
-                  <Package className="h-4.5 w-4.5 text-olive-750" />
-                  <span>Order Tracking</span>
-                </h2>
+              {/* Order Tracking Timeline & Live Status */}
+              <div className="card-surface p-6 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-olive-100/70">
+                  <h2 className="font-display text-base font-bold text-charcoal-900 flex items-center gap-2">
+                    <Truck className="h-4.5 w-4.5 text-olive-750" />
+                    <span>Parcel Tracking</span>
+                  </h2>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {order.courier && (
+                      <span className="bg-olive-50 border border-olive-200 px-3 py-1 rounded-full text-xs font-semibold text-olive-850">
+                        {order.courier}
+                      </span>
+                    )}
+                    {order.trackingNumber && (
+                      <span className="bg-white border border-olive-200 px-3 py-1 rounded-full text-xs font-mono text-charcoal-800">
+                        {order.trackingNumber}
+                      </span>
+                    )}
+                    <Link
+                      href={`/track?q=${order.orderNumber}`}
+                      className="text-xs font-bold text-olive-800 hover:underline flex items-center gap-1 ml-1"
+                    >
+                      <span>Public Tracker</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </div>
+
                 <div className="relative">
                   <div className="absolute left-4 top-0 h-full w-0.5 bg-olive-100"></div>
                   <div className="space-y-6 relative">
                     {(() => {
-                      const steps = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
-                      const isCancelled = order.status === 'cancelled';
-                      const currentStepIndex = isCancelled ? steps.indexOf('pending') : steps.indexOf(order.status);
-                      
+                      const steps = [
+                        { key: "pending", label: "Order Placed", desc: "Your order details have been recorded." },
+                        { key: "confirmed", label: "Order Confirmed", desc: "Payment verified and inventory allocated." },
+                        { key: "processing", label: "Processing & Quality Check", desc: "Items prepared and packed at fulfillment facility." },
+                        { key: "packed", label: "Packed & Ready", desc: "Package sealed with carrier label." },
+                        { key: "shipped", label: "Shipped with Carrier", desc: "Handed over to carrier for transit." },
+                        { key: "out_for_delivery", label: "Out for Delivery", desc: "Driver en route to your shipping address." },
+                        { key: "delivered", label: "Delivered", desc: "Package delivered successfully." },
+                      ];
+                      const isCancelled = order.status === "cancelled";
+                      const currentStepIndex = isCancelled
+                        ? 0
+                        : steps.findIndex((s) => s.key === order.status);
+
                       return steps.map((step, idx) => {
-                        const isCompleted = !isCancelled && idx <= currentStepIndex;
-                        const isCurrent = !isCancelled && idx === currentStepIndex;
-                        const isCancelledStep = isCancelled && idx === 1; // Show cancel at step 1
-                        
+                        const isCompleted = !isCancelled && currentStepIndex >= idx;
+                        const isCurrent = !isCancelled && currentStepIndex === idx;
+                        const isCancelledStep = isCancelled && idx === 1;
+
                         if (isCancelled && idx > 1) return null;
-                        
+
                         return (
-                          <div key={step} className="flex gap-4 relative z-10">
-                            <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 flex-shrink-0 ${
-                              isCancelledStep 
-                                ? 'bg-red-50 border-red-500 text-red-600'
-                                : isCompleted 
-                                  ? 'bg-olive-800 border-olive-800 text-cream-50' 
-                                  : 'bg-white border-olive-200 text-olive-300'
-                            }`}>
+                          <div key={step.key} className="flex gap-4 relative z-10">
+                            <div
+                              className={`h-8 w-8 rounded-full flex items-center justify-center border-2 flex-shrink-0 transition-all ${
+                                isCancelledStep
+                                  ? "bg-red-50 border-red-500 text-red-600"
+                                  : isCompleted
+                                  ? "bg-olive-800 border-olive-800 text-cream-50"
+                                  : "bg-white border-olive-200 text-olive-300"
+                              } ${isCurrent ? "ring-4 ring-olive-200 shadow-xs" : ""}`}
+                            >
                               {isCancelledStep ? (
                                 <XCircle className="h-4 w-4" />
                               ) : isCompleted ? (
@@ -239,16 +274,22 @@ export default function OrderConfirmationPage() {
                               )}
                             </div>
                             <div className="pt-1">
-                              <p className={`text-sm font-bold capitalize ${
-                                isCancelledStep ? 'text-red-700' : isCurrent ? 'text-olive-900' : isCompleted ? 'text-charcoal-900' : 'text-charcoal-700/50'
-                              }`}>
-                                {isCancelledStep ? 'Cancelled' : step}
+                              <p
+                                className={`text-sm font-bold capitalize ${
+                                  isCancelledStep
+                                    ? "text-red-700"
+                                    : isCurrent
+                                    ? "text-olive-900"
+                                    : isCompleted
+                                    ? "text-charcoal-900"
+                                    : "text-charcoal-700/50"
+                                }`}
+                              >
+                                {isCancelledStep ? "Cancelled" : step.label}
                               </p>
-                              {isCurrent && (
-                                <p className="text-xs text-charcoal-700/70 mt-1">
-                                  Your order is currently {step}.
-                                </p>
-                              )}
+                              <p className="text-xs text-charcoal-700/70 mt-0.5">
+                                {step.desc}
+                              </p>
                             </div>
                           </div>
                         );
@@ -256,6 +297,28 @@ export default function OrderConfirmationPage() {
                     })()}
                   </div>
                 </div>
+
+                {/* Location Tracking Milestones if present */}
+                {order.trackingHistory && order.trackingHistory.length > 0 && (
+                  <div className="pt-4 border-t border-olive-100/60 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-600">
+                      Live Location Milestones
+                    </h4>
+                    <div className="space-y-2 text-xs text-charcoal-700 bg-cream-50 p-4 rounded-xl border border-olive-100">
+                      {order.trackingHistory.map((h, i) => (
+                        <div key={i} className="flex justify-between items-start gap-4">
+                          <div>
+                            <p className="font-bold text-charcoal-900">{h.title}</p>
+                            {h.location && <p className="text-[11px] text-olive-800 font-semibold">📍 {h.location}</p>}
+                          </div>
+                          <span className="text-[10px] text-charcoal-500 whitespace-nowrap">
+                            {new Date(h.timestamp).toLocaleDateString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -307,6 +370,15 @@ export default function OrderConfirmationPage() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {order.status === "delivered" && (
+                  <Link
+                    href={`/returns/new?orderId=${order._id}`}
+                    className="flex items-center justify-center gap-2 w-full rounded-full bg-olive-800 py-3 text-center font-display text-sm font-bold text-cream-50 hover:bg-olive-900 shadow-sm hover:scale-[1.01] active:scale-99 transition-all hover:no-underline"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span>Request Return / Refund</span>
+                  </Link>
+                )}
                 <a
                   href={`/api/orders/${order._id}/invoice`}
                   target="_blank"
@@ -317,13 +389,13 @@ export default function OrderConfirmationPage() {
                 </a>
                 <Link
                   href="/products"
-                  className="block w-full rounded-full bg-olive-800 py-3 text-center font-display text-sm font-bold text-cream-50 hover:bg-olive-900 shadow-sm hover:scale-[1.01] active:scale-99 transition-all hover:no-underline"
+                  className="block w-full rounded-full border border-olive-300 bg-white py-3 text-center font-display text-sm font-bold text-olive-800 hover:bg-cream-100 transition-all hover:no-underline"
                 >
                   Continue Shopping
                 </Link>
                 <Link
                   href="/orders"
-                  className="block w-full rounded-full border border-olive-300 bg-white py-3 text-center font-display text-sm font-bold text-olive-800 hover:bg-cream-100 transition-all hover:no-underline"
+                  className="block w-full rounded-full border border-olive-200 bg-white py-2.5 text-center font-display text-xs font-semibold text-charcoal-700 hover:bg-cream-100 transition-all hover:no-underline"
                 >
                   View Order History
                 </Link>

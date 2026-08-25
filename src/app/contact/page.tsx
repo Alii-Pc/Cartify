@@ -126,7 +126,7 @@ export default function ContactPage() {
           <h3 className="font-display text-sm font-bold text-charcoal-900 sm:text-base">Call Us</h3>
           <p className="text-xs text-charcoal-700/70">Mon – Fri from 9am to 6pm EST</p>
           <a href="tel:+15552348900" className="text-xs font-semibold text-olive-800 hover:underline">
-            +1 (555) 234-8900
+            +92 3214578128
           </a>
         </div>
 

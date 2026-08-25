@@ -24,6 +24,14 @@ export interface IOrderItem {
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type PaymentMethod = "stripe" | "cod";
 
+export interface ITrackingEvent {
+  status: string;
+  title: string;
+  description?: string | undefined;
+  location?: string | undefined;
+  timestamp: Date;
+}
+
 export interface IOrder extends Document {
   orderNumber: string;
   userId: Types.ObjectId;
@@ -34,7 +42,7 @@ export interface IOrder extends Document {
   tax: number;
   discount: number;
   total: number;
-  status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "confirmed" | "processing" | "packed" | "shipped" | "out_for_delivery" | "delivered" | "cancelled";
   promoCode?: string | undefined;
   // Payment fields
   paymentStatus: PaymentStatus;
@@ -43,6 +51,14 @@ export interface IOrder extends Document {
   stripePaymentIntentId?: string | undefined;
   paidAt?: Date | undefined;
   invoiceNumber?: string | undefined;
+  // Parcel & Tracking fields
+  courier?: string | undefined;
+  trackingNumber?: string | undefined;
+  trackingUrl?: string | undefined;
+  estimatedDelivery?: Date | undefined;
+  shippedAt?: Date | undefined;
+  deliveredAt?: Date | undefined;
+  trackingHistory?: ITrackingEvent[] | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +90,17 @@ const orderItemSchema = new Schema(
   { _id: false }
 );
 
+const trackingEventSchema = new Schema(
+  {
+    status: { type: String, required: true },
+    title: { type: String, required: true },
+    description: { type: String },
+    location: { type: String },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const orderSchema = new Schema<IOrder>(
   {
     orderNumber: { type: String, required: true, unique: true },
@@ -87,7 +114,16 @@ const orderSchema = new Schema<IOrder>(
     total: { type: Number, required: true, min: 0 },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"],
+      enum: [
+        "pending",
+        "confirmed",
+        "processing",
+        "packed",
+        "shipped",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
       default: "pending",
     },
     promoCode: { type: String },
@@ -106,11 +142,20 @@ const orderSchema = new Schema<IOrder>(
     stripePaymentIntentId: { type: String, sparse: true },
     paidAt: { type: Date },
     invoiceNumber: { type: String, sparse: true },
+    // Parcel & Tracking fields
+    courier: { type: String },
+    trackingNumber: { type: String, sparse: true },
+    trackingUrl: { type: String },
+    estimatedDelivery: { type: Date },
+    shippedAt: { type: Date },
+    deliveredAt: { type: Date },
+    trackingHistory: { type: [trackingEventSchema], default: [] },
   },
   { timestamps: true }
 );
 
 orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ trackingNumber: 1 });
 
 // Auto-generate orderNumber if not set
 orderSchema.pre("validate", function (next) {
@@ -127,3 +172,4 @@ orderSchema.pre("validate", function (next) {
 
 export const Order: Model<IOrder> =
   models.Order || model<IOrder>("Order", orderSchema);
+

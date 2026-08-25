@@ -7,7 +7,8 @@ import Link from "next/link";
 
 interface Review {
   _id: string;
-  user: { _id: string; name: string; email: string };
+  user?: { _id: string; name: string; email: string };
+  reviewerName?: string;
   product: { _id: string; name: string; slug: string; images: string[] };
   rating: number;
   comment: string;
@@ -131,12 +132,15 @@ export default function AdminReviewsPage() {
                           <div className="text-xs text-charcoal-500">{review.user.email}</div>
                           {review.isVerifiedPurchase && (
                             <span className="mt-1 inline-block text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-sm">
-                              Verified
+                              Verified Buyer
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-charcoal-400 italic">Deleted User</span>
+                        <div>
+                          <div className="font-medium text-charcoal-900">{review.reviewerName || "Shopper"}</div>
+                          <div className="text-xs text-charcoal-500">Shopper Review</div>
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4">

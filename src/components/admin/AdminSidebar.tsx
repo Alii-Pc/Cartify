@@ -14,7 +14,8 @@ import {
   Settings,
   Bell,
   MessageSquare,
-  Star
+  Star,
+  RotateCcw
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -34,6 +35,7 @@ export default function AdminSidebar({ isOpen, onClose, isMobile, isCollapsed }:
     { name: "Categories", href: "/admin/categories", icon: FolderTree },
     { name: "Inventory", href: "/admin/inventory", icon: PackageOpen },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { name: "Returns", href: "/admin/returns", icon: RotateCcw },
     { name: "Chat", href: "/admin/chat", icon: MessageSquare },
     { name: "Promotions", href: "/admin/promotions", icon: Bell },
     { name: "Reviews", href: "/admin/reviews", icon: Star },

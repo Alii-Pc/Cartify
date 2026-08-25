@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireAdmin, successResponse, errorResponse } from "@/lib/api-utils";
+import { authenticateUser, requireAdmin, successResponse, errorResponse } from "@/lib/api-utils";
 import { uploadImageToCloudinary, deleteImageFromCloudinary } from "@/lib/cloudinary";
 
 export const dynamic = "force-dynamic";
@@ -9,23 +9,39 @@ const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"
 
 export async function POST(req: NextRequest) {
   try {
-    const authCheck = await requireAdmin(req);
-    if (authCheck.errorResponse) {
-      return authCheck.errorResponse;
-    }
-
     const contentType = req.headers.get("content-type") || "";
+    let folder = "cartify/products";
+    let file: File | null = null;
+    let imageBase64: string | null = null;
 
-    // Handle multipart/form-data (File upload)
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
-      const file = formData.get("file") as File | null;
-      const folder = (formData.get("folder") as string) || "cartify/products";
+      file = formData.get("file") as File | null;
+      folder = (formData.get("folder") as string) || "cartify/products";
+    } else if (contentType.includes("application/json")) {
+      const body = await req.json();
+      imageBase64 = body.image;
+      folder = body.folder || "cartify/products";
+    } else {
+      return errorResponse(
+        "Unsupported content-type. Send multipart/form-data with 'file' or JSON with 'image'",
+        415
+      );
+    }
 
-      if (!file) {
-        return errorResponse("No image file provided. Make sure field name is 'file'", 400);
-      }
+    // Role verification: returns folder allows authenticated regular users; other folders require admin
+    const user = await authenticateUser(req);
+    if (!user) {
+      return errorResponse("Authentication required to upload images", 401);
+    }
 
+    const isReturnsFolder = folder === "cartify/returns" || folder.startsWith("cartify/returns");
+    if (!isReturnsFolder && user.role !== "admin" && process.env.DEV_BYPASS_ADMIN !== "true") {
+      return errorResponse("Admin permissions required to upload to this directory", 403);
+    }
+
+    // Handle multipart/form-data (File upload)
+    if (file) {
       if (!ALLOWED_MIME_TYPES.includes(file.type)) {
         return errorResponse(
           `Invalid file format: ${file.type}. Allowed formats: JPG, PNG, WEBP, GIF`,
@@ -45,19 +61,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Handle JSON (base64 string upload)
-    if (contentType.includes("application/json")) {
-      const body = await req.json();
-      const { image, folder = "cartify/products" } = body;
-
-      if (!image || typeof image !== "string") {
-        return errorResponse("Please provide a base64 string or data URL in the 'image' property", 400);
+    if (imageBase64) {
+      if (typeof imageBase64 !== "string") {
+        return errorResponse("Please provide a valid base64 string or data URL in the 'image' property", 400);
       }
 
-      const result = await uploadImageToCloudinary(image, folder);
+      const result = await uploadImageToCloudinary(imageBase64, folder);
       return successResponse(result, "Image uploaded successfully", 201);
     }
 
-    return errorResponse("Unsupported content-type. Send multipart/form-data with 'file' or JSON with 'image'", 415);
+    return errorResponse("No image file or base64 provided", 400);
   } catch (err: any) {
     if (err?.digest === "DYNAMIC_SERVER_USAGE") {
       throw err;

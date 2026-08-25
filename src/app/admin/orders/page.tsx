@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import { ShoppingBag, ChevronDown, ChevronUp, Search } from "lucide-react";
+import Link from "next/link";
+import { ShoppingBag, ChevronDown, ChevronUp, Search, Truck, MapPin, Clock, Plus, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { Loader2 } from "lucide-react";
 import { SafeOrder } from "@/types";
@@ -13,7 +14,9 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
   confirmed: "bg-olive-100 text-olive-800",
   processing: "bg-sky-100 text-sky-800",
+  packed: "bg-purple-100 text-purple-800",
   shipped: "bg-indigo-100 text-indigo-800",
+  out_for_delivery: "bg-teal-100 text-teal-800",
   delivered: "bg-emerald-100 text-emerald-800",
   cancelled: "bg-red-100 text-red-800",
 };
@@ -25,7 +28,16 @@ const PAYMENT_COLORS: Record<string, string> = {
   refunded: "bg-sky-100 text-sky-800",
 };
 
-const STATUS_OPTIONS = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
+const STATUS_OPTIONS = [
+  "pending",
+  "confirmed",
+  "processing",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+  "cancelled",
+];
 const PAYMENT_OPTIONS = ["pending", "paid", "failed", "refunded"];
 
 export default function OrdersPage() {
@@ -41,6 +53,16 @@ export default function OrdersPage() {
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // Tracking state per expanded order
+  const [trackingForm, setTrackingForm] = useState<Record<string, {
+    courier: string;
+    trackingNumber: string;
+    estimatedDelivery: string;
+    eventTitle: string;
+    eventLocation: string;
+    eventDescription: string;
+  }>>({});
 
   const { addToast } = useToast();
 
@@ -72,13 +94,46 @@ export default function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const toggleRow = (orderId: string) => {
-    setExpandedRows(prev => {
+  const updateTrackingField = (orderId: string, field: string, value: string) => {
+    setTrackingForm((tf) => {
+      const current = tf[orderId] || {
+        courier: "",
+        trackingNumber: "",
+        estimatedDelivery: "",
+        eventTitle: "",
+        eventLocation: "",
+        eventDescription: "",
+      };
+      return {
+        ...tf,
+        [orderId]: {
+          ...current,
+          [field]: value,
+        },
+      };
+    });
+  };
+
+  const toggleRow = (orderId: string, order?: SafeOrder) => {
+    setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(orderId)) {
         next.delete(orderId);
       } else {
         next.add(orderId);
+        if (order && !trackingForm[orderId]) {
+          setTrackingForm((tf) => ({
+            ...tf,
+            [orderId]: {
+              courier: order.courier || "",
+              trackingNumber: order.trackingNumber || "",
+              estimatedDelivery: order.estimatedDelivery ? (order.estimatedDelivery.split("T")[0] || "") : "",
+              eventTitle: "",
+              eventLocation: "",
+              eventDescription: "",
+            },
+          }));
+        }
       }
       return next;
     });
@@ -102,6 +157,86 @@ export default function OrdersPage() {
       fetchOrders();
     } catch (error: any) {
       addToast("error", error.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const saveTrackingInfo = async (orderId: string) => {
+    const form = trackingForm[orderId];
+    if (!form) return;
+
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courier: form.courier || undefined,
+          trackingNumber: form.trackingNumber || undefined,
+          estimatedDelivery: form.estimatedDelivery || undefined,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to update tracking info");
+      }
+      addToast("success", "Courier & Tracking saved!");
+      fetchOrders();
+    } catch (err: any) {
+      addToast("error", err.message || "Error saving tracking info");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const addTrackingMilestone = async (orderId: string) => {
+    const form = trackingForm[orderId];
+    if (!form || !form.eventTitle.trim()) {
+      addToast("error", "Please provide a milestone title");
+      return;
+    }
+
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          addTrackingEvent: {
+            title: form.eventTitle,
+            location: form.eventLocation || undefined,
+            description: form.eventDescription || undefined,
+          },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to add milestone");
+      }
+      addToast("success", "Milestone added & notification dispatched!");
+      setTrackingForm((tf) => {
+        const current = tf[orderId] || {
+          courier: "",
+          trackingNumber: "",
+          estimatedDelivery: "",
+          eventTitle: "",
+          eventLocation: "",
+          eventDescription: "",
+        };
+        return {
+          ...tf,
+          [orderId]: {
+            ...current,
+            eventTitle: "",
+            eventLocation: "",
+            eventDescription: "",
+          },
+        };
+      });
+      fetchOrders();
+    } catch (err: any) {
+      addToast("error", err.message || "Error adding tracking milestone");
     } finally {
       setUpdatingId(null);
     }
@@ -244,14 +379,16 @@ export default function OrdersPage() {
                       {isExpanded && (
                         <tr className="bg-cream-50/30 border-b-2 border-olive-100">
                           <td colSpan={8} className="px-6 py-6">
-                            <div className="flex flex-col md:flex-row gap-8">
-                              {/* Order Items */}
-                              <div className="flex-1 space-y-4">
-                                <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider">Order Items</h3>
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                              {/* Left: Order Items (4 cols) */}
+                              <div className="lg:col-span-4 space-y-4">
+                                <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider">
+                                  Order Items ({order.items?.length || 0})
+                                </h3>
                                 <div className="space-y-3">
                                   {order.items?.map((item, idx) => (
-                                    <div key={idx} className="flex items-center gap-4 bg-white p-3 rounded-lg border border-olive-100 shadow-sm">
-                                      <div className="relative h-12 w-12 rounded-md overflow-hidden bg-cream-100 shrink-0">
+                                    <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-olive-100 shadow-sm">
+                                      <div className="relative h-11 w-11 rounded-md overflow-hidden bg-cream-100 shrink-0">
                                         {item.image ? (
                                           <Image src={item.image} alt={item.name} fill className="object-cover" />
                                         ) : (
@@ -259,10 +396,10 @@ export default function OrdersPage() {
                                         )}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-charcoal-900 truncate">{item.name}</p>
-                                        <p className="text-xs text-charcoal-500">Qty: {item.quantity}</p>
+                                        <p className="text-xs font-semibold text-charcoal-900 truncate">{item.name}</p>
+                                        <p className="text-[11px] text-charcoal-500">Qty: {item.quantity}</p>
                                       </div>
-                                      <div className="text-sm font-medium text-charcoal-900">
+                                      <div className="text-xs font-bold text-charcoal-900">
                                         ${(item.price * item.quantity).toFixed(2)}
                                       </div>
                                     </div>
@@ -270,31 +407,135 @@ export default function OrdersPage() {
                                 </div>
                               </div>
 
-                              {/* Shipping & Actions */}
-                              <div className="w-full md:w-72 space-y-6">
+                              {/* Middle: Parcel Tracking & Milestones (4 cols) */}
+                              <div className="lg:col-span-4 space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                                    <Truck className="h-4 w-4 text-olive-700" />
+                                    <span>Courier &amp; Tracking</span>
+                                  </h3>
+                                  <Link
+                                    href={`/track?q=${order.orderNumber}`}
+                                    target="_blank"
+                                    className="text-[11px] font-bold text-olive-800 hover:underline flex items-center gap-1"
+                                  >
+                                    <span>Live Portal</span>
+                                    <ExternalLink size={12} />
+                                  </Link>
+                                </div>
+
+                                <div className="bg-white p-4 rounded-xl border border-olive-100 shadow-sm space-y-3 text-xs">
+                                  <div>
+                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-charcoal-600 mb-1">
+                                      Carrier / Courier Name
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. FedEx Express, DHL, UPS, USPS"
+                                      value={trackingForm[order._id]?.courier || ""}
+                                      onChange={(e) => updateTrackingField(order._id, "courier", e.target.value)}
+                                      className="w-full px-3 py-1.5 border border-olive-200 rounded-lg text-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-charcoal-600 mb-1">
+                                      Tracking Number
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. TRK-98234729"
+                                      value={trackingForm[order._id]?.trackingNumber || ""}
+                                      onChange={(e) => updateTrackingField(order._id, "trackingNumber", e.target.value)}
+                                      className="w-full px-3 py-1.5 border border-olive-200 rounded-lg text-xs font-mono"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-[10px] font-bold uppercase tracking-wider text-charcoal-600 mb-1">
+                                      Estimated Delivery Date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      value={trackingForm[order._id]?.estimatedDelivery || ""}
+                                      onChange={(e) => updateTrackingField(order._id, "estimatedDelivery", e.target.value)}
+                                      className="w-full px-3 py-1.5 border border-olive-200 rounded-lg text-xs"
+                                    />
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    disabled={updatingId === order._id}
+                                    onClick={() => saveTrackingInfo(order._id)}
+                                    className="w-full py-1.5 bg-olive-700 hover:bg-olive-800 text-cream-50 font-bold rounded-lg text-xs transition-colors shadow-2xs"
+                                  >
+                                    Save Carrier &amp; Tracking
+                                  </button>
+
+                                  {/* Add Tracking Milestone Event */}
+                                  <div className="pt-3 border-t border-olive-100 space-y-2">
+                                    <p className="text-[11px] font-bold text-charcoal-800">Add Live Milestone Event</p>
+                                    <input
+                                      type="text"
+                                      placeholder="Milestone title (e.g. Arrived at Sorting Hub)"
+                                      value={trackingForm[order._id]?.eventTitle || ""}
+                                      onChange={(e) => updateTrackingField(order._id, "eventTitle", e.target.value)}
+                                      className="w-full px-3 py-1.5 border border-olive-200 rounded-lg text-xs"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="Location (e.g. Chicago Transit Center, IL)"
+                                      value={trackingForm[order._id]?.eventLocation || ""}
+                                      onChange={(e) => updateTrackingField(order._id, "eventLocation", e.target.value)}
+                                      className="w-full px-3 py-1.5 border border-olive-200 rounded-lg text-xs"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="Description note (optional)"
+                                      value={trackingForm[order._id]?.eventDescription || ""}
+                                      onChange={(e) => updateTrackingField(order._id, "eventDescription", e.target.value)}
+                                      className="w-full px-3 py-1.5 border border-olive-200 rounded-lg text-xs"
+                                    />
+
+                                    <button
+                                      type="button"
+                                      disabled={updatingId === order._id || !trackingForm[order._id]?.eventTitle?.trim()}
+                                      onClick={() => addTrackingMilestone(order._id)}
+                                      className="w-full py-1.5 bg-charcoal-800 hover:bg-charcoal-900 text-cream-50 font-bold rounded-lg text-xs transition-colors shadow-2xs disabled:opacity-50"
+                                    >
+                                      + Dispatch Milestone Event
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right: Shipping Address & Status (4 cols) */}
+                              <div className="lg:col-span-4 space-y-4">
                                 <div>
-                                  <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider mb-3">Shipping Address</h3>
-                                  <div className="bg-white p-4 rounded-lg border border-olive-100 shadow-sm text-sm text-charcoal-700 space-y-1">
-                                    <p className="font-medium text-charcoal-900">{order.shippingAddress?.fullName}</p>
+                                  <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider mb-2">Shipping Address</h3>
+                                  <div className="bg-white p-4 rounded-xl border border-olive-100 shadow-sm text-xs text-charcoal-700 space-y-1">
+                                    <p className="font-bold text-charcoal-900 text-sm">{order.shippingAddress?.fullName}</p>
                                     <p>{order.shippingAddress?.addressLine1}</p>
                                     {order.shippingAddress?.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
                                     <p>{order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.zipCode}</p>
                                     <p>{order.shippingAddress?.country}</p>
-                                    <p className="pt-2 text-xs">Email: {order.shippingAddress?.email}</p>
-                                    <p className="text-xs">Phone: {order.shippingAddress?.phone}</p>
+                                    <p className="pt-2 text-charcoal-500">Email: {order.shippingAddress?.email}</p>
+                                    <p className="text-charcoal-500">Phone: {order.shippingAddress?.phone}</p>
                                   </div>
                                 </div>
 
                                 <div>
-                                  <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider mb-3">Update Status</h3>
-                                  <div className="bg-white p-4 rounded-lg border border-olive-100 shadow-sm flex flex-col gap-3">
+                                  <h3 className="font-semibold text-charcoal-900 text-sm uppercase tracking-wider mb-2">Update Order Status</h3>
+                                  <div className="bg-white p-4 rounded-xl border border-olive-100 shadow-sm flex flex-col gap-3">
                                     <select
                                       id={`status-update-${order._id}`}
-                                      className="w-full px-3 py-2 border border-olive-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-olive-500 bg-white text-sm"
+                                      className="w-full px-3 py-2 border border-olive-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-olive-500 bg-white text-xs font-semibold"
                                       defaultValue={order.status}
                                     >
-                                      {STATUS_OPTIONS.map(s => (
-                                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                                      {STATUS_OPTIONS.map((s) => (
+                                        <option key={s} value={s}>
+                                          {s.replace("_", " ").toUpperCase()}
+                                        </option>
                                       ))}
                                     </select>
                                     <Button
@@ -303,9 +544,9 @@ export default function OrdersPage() {
                                         if (sel) updateOrderStatus(order._id, sel.value);
                                       }}
                                       isLoading={updatingId === order._id}
-                                      className="w-full justify-center"
+                                      className="w-full justify-center text-xs py-2"
                                     >
-                                      Update
+                                      Update Status
                                     </Button>
                                   </div>
                                 </div>

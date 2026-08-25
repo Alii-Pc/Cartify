@@ -6,7 +6,7 @@ import { ShopLayout } from "@/components/layout/ShopLayout";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/components/ui/Toast";
-import { ArrowRight, ShoppingBag, Eye, RefreshCw, Download } from "lucide-react";
+import { ArrowRight, ShoppingBag, Eye, RefreshCw, Download, Truck, RotateCcw } from "lucide-react";
 import type { SafeOrder } from "@/types";
 
 const STATUS_TABS = ["all", "pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
@@ -202,6 +202,24 @@ export default function OrderHistoryPage() {
                             <Download className="h-4 w-4" />
                           </a>
                         )}
+                        <Link
+                          href={`/track?q=${order.orderNumber}`}
+                          className="rounded-full bg-cream-100 border border-olive-200 px-3 py-1.5 text-xs font-semibold text-olive-850 hover:bg-olive-100 transition-all flex items-center gap-1 shadow-2xs hover:no-underline"
+                          title="Track Package"
+                        >
+                          <Truck className="h-3.5 w-3.5" />
+                          <span>Track</span>
+                        </Link>
+                        {order.status === "delivered" && (
+                          <Link
+                            href={`/returns/new?orderId=${order._id}`}
+                            className="rounded-full bg-olive-50 border border-olive-300 px-3 py-1.5 text-xs font-semibold text-olive-900 hover:bg-olive-100 transition-all flex items-center gap-1 shadow-2xs hover:no-underline"
+                            title="Return Items"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            <span>Return</span>
+                          </Link>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleReorder(order)}
@@ -216,7 +234,7 @@ export default function OrderHistoryPage() {
                           className="rounded-full bg-white border border-olive-200 px-3.5 py-1.5 text-xs font-semibold text-charcoal-800 hover:bg-cream-100 transition-all flex items-center gap-1 hover:no-underline shadow-2xs"
                         >
                           <Eye className="h-3.5 w-3.5" />
-                          <span>View Details</span>
+                          <span>Details</span>
                         </Link>
                       </div>
                     </div>

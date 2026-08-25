@@ -512,3 +512,229 @@ export async function sendNewsletterAdminNotificationEmail(email: string): Promi
     `,
   });
 }
+
+/* ---------------------------------------------------------------------------
+ * Return & Refund Emails
+ * -------------------------------------------------------------------------*/
+export async function sendReturnRequestConfirmationEmail(
+  returnReq: any,
+  order: any,
+  userEmail: string,
+  userName: string
+): Promise<void> {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://cartify.vercel.app";
+
+  const itemRows = returnReq.items
+    .map(
+      (item: any) => `
+      <tr style="border-bottom: 1px solid #f0f1ea;">
+        <td style="padding: 10px 8px; color: #2b2b26; font-size: 13px;">
+          <div style="font-weight: 600;">${item.name}</div>
+          <div style="font-size: 11px; color: #666; margin-top: 2px;">
+            Qty: ${item.quantity} &bull; Reason: <strong>${item.reason.replace("_", " ")}</strong>
+          </div>
+          ${item.reasonDetails ? `<div style="font-size: 11px; color: #888; font-style: italic; margin-top: 2px;">"${item.reasonDetails}"</div>` : ""}
+        </td>
+        <td style="padding: 10px 8px; color: #2b2b26; font-size: 13px; text-align: right; font-weight: 600; vertical-align: middle;">
+          $${(item.price * item.quantity).toFixed(2)}
+        </td>
+      </tr>
+    `
+    )
+    .join("");
+
+  await sendMailReliably({
+    from,
+    to: userEmail,
+    subject: `Return Request Received: #${returnReq.returnNumber} — Cartify`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 36px 32px; background: #f5f6f0; border-radius: 16px;">
+        <div style="margin-bottom: 24px; text-align: center;">
+          <span style="font-size: 24px; font-weight: 700; color: #4f5a34;">Cart<span style="color: #8a9a5b;">ify</span></span>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #2b2b26; font-size: 20px; margin: 0 0 6px;">Return Request Received 📦</h2>
+          <p style="color: #666; font-size: 14px; margin: 0;">Hi ${userName}, we received your return request <strong>#${returnReq.returnNumber}</strong> for Order <strong>#${returnReq.orderNumber}</strong>.</p>
+        </div>
+
+        <div style="background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #d8dcc4; margin-bottom: 24px;">
+          <h3 style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7a8a5a; margin: 0 0 12px;">Items to Return</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+            <tbody>
+              ${itemRows}
+            </tbody>
+          </table>
+          <div style="border-top: 1px solid #f0f1ea; padding-top: 10px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #4f5a34;">
+            <span>Estimated Refund:</span>
+            <span>$${returnReq.refundAmount.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div style="background: #fff; border-radius: 12px; padding: 16px 20px; border: 1px solid #d8dcc4; margin-bottom: 24px; font-size: 13px; color: #444; line-height: 1.6;">
+          <strong>What happens next?</strong>
+          <p style="margin: 6px 0 0;">Our returns team will review your request within <strong>24-48 business hours</strong>. You can monitor the live status anytime in your account.</p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <a href="${baseUrl}/returns/${returnReq.returnNumber}"
+             style="display: inline-block; padding: 12px 32px; background-color: #4f5a34; color: #fdfcf8; text-decoration: none; border-radius: 999px; font-size: 14px; font-weight: 600;">
+            Track Return Status
+          </a>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendAdminReturnNotificationEmail(
+  returnReq: any,
+  userEmail: string,
+  userName: string
+): Promise<void> {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+  const adminEmail = process.env.ADMIN_EMAIL?.trim() || process.env.SMTP_USER?.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://cartify.vercel.app";
+
+  await sendMailReliably({
+    from,
+    to: adminEmail,
+    subject: `[Cartify Return] #${returnReq.returnNumber} from ${userName} (Order #${returnReq.orderNumber})`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 36px 32px; background: #1e2010; border-radius: 16px; color: #e8ead8;">
+        <div style="margin-bottom: 20px; border-bottom: 1px solid #3a3e24; padding-bottom: 12px;">
+          <span style="font-size: 20px; font-weight: 700; color: #a0b060;">Cart<span style="color: #c8d890;">ify</span></span>
+          <span style="font-size: 12px; font-weight: 600; background: #3a4820; color: #a0b060; padding: 3px 10px; border-radius: 999px; margin-left: 10px;">Return Alert</span>
+        </div>
+        <h2 style="font-size: 18px; color: #e8ead8; margin: 0 0 6px;">New Return Request: #${returnReq.returnNumber}</h2>
+        <p style="color: #9a9c80; font-size: 13px; margin: 0 0 20px;">Customer: <strong>${userName}</strong> (${userEmail}) &bull; Order: <strong>#${returnReq.orderNumber}</strong></p>
+        
+        <div style="background: #2a2e18; border-radius: 12px; padding: 16px 20px; border: 1px solid #3a3e24; margin-bottom: 20px; font-size: 13px;">
+          <p style="margin: 0 0 8px; color: #a0b060;"><strong>Requested Refund:</strong> $${returnReq.refundAmount.toFixed(2)}</p>
+          <p style="margin: 0 0 8px;"><strong>Total Items:</strong> ${returnReq.items.length}</p>
+          ${returnReq.customerNote ? `<p style="margin: 0; color: #c8d890; font-style: italic;">"${returnReq.customerNote}"</p>` : ""}
+        </div>
+
+        <a href="${baseUrl}/admin/returns/${returnReq._id}"
+           style="display: inline-block; padding: 11px 24px; background: #4f5a34; color: #fdfcf8; text-decoration: none; border-radius: 999px; font-size: 13px; font-weight: 600;">
+          Review in Admin Panel
+        </a>
+      </div>
+    `,
+  });
+}
+
+export async function sendReturnStatusUpdateEmail(
+  returnReq: any,
+  userEmail: string,
+  userName: string,
+  newStatus: string,
+  note?: string
+): Promise<void> {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://cartify.vercel.app";
+
+  const statusTitles: Record<string, string> = {
+    approved: "Return Approved! 🎉",
+    rejected: "Return Request Update",
+    pickup: "Pickup Scheduled 🚚",
+    received: "Item Received & Inspected ✅",
+    refund_processing: "Refund Processing 💳",
+    refunded: "Refund Completed! 💰",
+    cancelled: "Return Cancelled",
+  };
+
+  const statusMessages: Record<string, string> = {
+    approved: "Your return request has been approved. Please follow the return instructions or prepare your package for courier pickup.",
+    rejected: `Your return request could not be approved at this time.${returnReq.rejectionReason ? ` Reason: ${returnReq.rejectionReason}` : ""}`,
+    pickup: `A pickup has been scheduled for your return package.${returnReq.pickupDetails?.courier ? ` Courier: ${returnReq.pickupDetails.courier}` : ""}${returnReq.pickupDetails?.trackingNumber ? ` (Tracking: ${returnReq.pickupDetails.trackingNumber})` : ""}`,
+    received: "We have received your returned item(s) at our fulfillment facility and verified its condition.",
+    refund_processing: "Your refund is now being processed to your original payment method.",
+    refunded: `Your refund of $${returnReq.refundAmount.toFixed(2)} has been successfully issued!`,
+    cancelled: "Your return request has been cancelled.",
+  };
+
+  await sendMailReliably({
+    from,
+    to: userEmail,
+    subject: `Return Update: #${returnReq.returnNumber} is now ${newStatus.toUpperCase()} — Cartify`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 36px 32px; background: #f5f6f0; border-radius: 16px;">
+        <div style="margin-bottom: 24px; text-align: center;">
+          <span style="font-size: 24px; font-weight: 700; color: #4f5a34;">Cart<span style="color: #8a9a5b;">ify</span></span>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #2b2b26; font-size: 20px; margin: 0 0 6px;">${statusTitles[newStatus] || "Return Status Update"}</h2>
+          <p style="color: #666; font-size: 14px; margin: 0;">Return Request <strong>#${returnReq.returnNumber}</strong> (Order #${returnReq.orderNumber})</p>
+        </div>
+
+        <div style="background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #d8dcc4; margin-bottom: 24px; font-size: 13px; color: #333; line-height: 1.6;">
+          <p style="margin: 0 0 12px; font-size: 14px;">Hi ${userName},</p>
+          <p style="margin: 0 0 12px;">${statusMessages[newStatus] || `Your return request status has been updated to ${newStatus}.`}</p>
+          ${note ? `<div style="background: #f8f9f2; border-left: 3px solid #7f8f52; padding: 8px 12px; margin: 12px 0; color: #555; font-size: 12px;"><strong>Note from team:</strong> ${note}</div>` : ""}
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <a href="${baseUrl}/returns/${returnReq.returnNumber}"
+             style="display: inline-block; padding: 12px 32px; background-color: #4f5a34; color: #fdfcf8; text-decoration: none; border-radius: 999px; font-size: 14px; font-weight: 600;">
+            View Return Details
+          </a>
+        </div>
+      </div>
+    `,
+  });
+}
+
+/* ---------------------------------------------------------------------------
+ * Parcel / Tracking Milestone Emails
+ * -------------------------------------------------------------------------*/
+export async function sendTrackingUpdateEmail(
+  order: any,
+  latestEvent: { title: string; description?: string; location?: string; status: string }
+): Promise<void> {
+  const from = process.env.EMAIL_FROM?.trim() || process.env.SMTP_USER?.trim();
+  const userEmail = order.shippingAddress.email;
+  const userName = order.shippingAddress.fullName;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://cartify.vercel.app";
+
+  await sendMailReliably({
+    from,
+    to: userEmail,
+    subject: `Tracking Update for Order #${order.orderNumber}: ${latestEvent.title} — Cartify`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 36px 32px; background: #f5f6f0; border-radius: 16px;">
+        <div style="margin-bottom: 24px; text-align: center;">
+          <span style="font-size: 24px; font-weight: 700; color: #4f5a34;">Cart<span style="color: #8a9a5b;">ify</span></span>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #2b2b26; font-size: 20px; margin: 0 0 6px;">Shipment Update 🚚</h2>
+          <p style="color: #666; font-size: 14px; margin: 0;">Order <strong>#${order.orderNumber}</strong> has a new tracking update.</p>
+        </div>
+
+        <div style="background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #d8dcc4; margin-bottom: 24px;">
+          <div style="border-left: 3px solid #7f8f52; padding-left: 12px;">
+            <h3 style="font-size: 15px; font-weight: 700; color: #2b2b26; margin: 0 0 4px;">${latestEvent.title}</h3>
+            ${latestEvent.description ? `<p style="font-size: 13px; color: #666; margin: 0 0 6px;">${latestEvent.description}</p>` : ""}
+            ${latestEvent.location ? `<p style="font-size: 12px; color: #7f8f52; margin: 0; font-weight: 600;">📍 ${latestEvent.location}</p>` : ""}
+          </div>
+          
+          ${order.courier ? `
+          <div style="margin-top: 16px; pt-3; border-top: 1px solid #f0f1ea; font-size: 12px; color: #666;">
+            <strong>Courier:</strong> ${order.courier} ${order.trackingNumber ? `&bull; <strong>Tracking #:</strong> ${order.trackingNumber}` : ""}
+          </div>` : ""}
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <a href="${baseUrl}/orders/${order.orderNumber}"
+             style="display: inline-block; padding: 12px 32px; background-color: #4f5a34; color: #fdfcf8; text-decoration: none; border-radius: 999px; font-size: 14px; font-weight: 600;">
+            Track Full Journey
+          </a>
+        </div>
+      </div>
+    `,
+  });
+}
+

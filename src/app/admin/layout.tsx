@@ -38,7 +38,7 @@ export default function AdminLayout({
       if (!user) {
         router.push("/admin/login");
       } else if (user.role !== "admin") {
-        router.push("/");
+        router.push("/admin/login?error=access_denied");
       }
     }
   }, [user, isLoading, router, pathname]);

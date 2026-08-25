@@ -68,10 +68,11 @@ export function Footer() {
             <ChevronDown className={`h-4 w-4 text-cream-50 sm:hidden transition-transform ${openSections['support'] ? 'rotate-180' : ''}`} />
           </button>
           <ul className={`mt-3 space-y-2 text-sm text-cream-100/60 overflow-hidden transition-all duration-300 sm:max-h-none sm:opacity-100 ${openSections['support'] ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <li><Link href="/about" className="hover:text-cream-50">About Cartify</Link></li>
+            <li><Link href="/track" className="hover:text-cream-50">Track Parcel</Link></li>
+            <li><Link href="/returns" className="hover:text-cream-50">Returns &amp; Refunds</Link></li>
             <li><Link href="/contact" className="hover:text-cream-50">Contact Us</Link></li>
+            <li><Link href="/about" className="hover:text-cream-50">About Cartify</Link></li>
             <li><Link href="/contact#faq" className="hover:text-cream-50">FAQs &amp; Help</Link></li>
-            <li><Link href="/cart" className="hover:text-cream-50">Shipping &amp; Returns</Link></li>
           </ul>
         </div>
 
