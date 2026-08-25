@@ -50,6 +50,7 @@ export function AIChatWidget() {
   const [error, setError] = useState<string | null>(null);
   const [connectingElapsed, setConnectingElapsed] = useState(0);
 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const connectingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,10 +90,22 @@ export function AIChatWidget() {
     }
   }, [messages]);
 
+  // Scroll to bottom helper
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior,
+      });
+    }
+  };
+
   // Scroll to bottom on new message or typing
   useEffect(() => {
     if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      scrollToBottom();
+      const timer = setTimeout(() => scrollToBottom("auto"), 120);
+      return () => clearTimeout(timer);
     }
   }, [messages, isOpen, isTyping, mode]);
 
@@ -115,7 +128,6 @@ export function AIChatWidget() {
         } else if (meta.status === "pending") {
           setMode("connecting");
         } else if (meta.status === "closed" && mode === "live") {
-          // Admin closed the live session, seamlessly switch back to AI
           setMode("ai");
         }
       }
@@ -137,7 +149,6 @@ export function AIChatWidget() {
           }))
           .sort((a, b) => a.timestamp - b.timestamp);
 
-        // Merge firebase messages with our message history without duplicating
         setMessages((prev) => {
           const mergedMap = new Map<string, Message>();
           prev.forEach((m) => mergedMap.set(m.id, m));
@@ -170,7 +181,7 @@ export function AIChatWidget() {
     };
   }, [mode]);
 
-  // Listen for external open events (e.g. from buttons on site)
+  // Listen for external open events
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     window.addEventListener("open-live-chat", handleOpen);
@@ -181,7 +192,7 @@ export function AIChatWidget() {
     };
   }, []);
 
-  // Automatic Live Support Connection (Called automatically when human assistance is detected)
+  // Automatic Live Support Connection (Triggered only when human support is explicitly requested)
   const autoConnectToAdmin = async (allMessages: Message[]) => {
     if (!chatId || !database) return;
 
@@ -190,7 +201,7 @@ export function AIChatWidget() {
     try {
       const messagesRef = ref(database, `chats/${chatId}/messages`);
 
-      // Seed all prior AI conversation into Firebase so Admin sees full context
+      // Seed prior messages so Admin has context
       for (const m of allMessages) {
         const itemRef = push(messagesRef);
         await set(itemRef, {
@@ -201,19 +212,17 @@ export function AIChatWidget() {
         });
       }
 
-      // Add a handoff announcement message
       const handoffMsgRef = push(messagesRef);
       await set(handoffMsgRef, {
         sender: "system",
-        text: "Customer connected to live support.",
+        text: "Customer requested live support.",
         timestamp: serverTimestamp(),
       });
 
-      // Update meta to alert Admin in real time
       await set(ref(database, `chats/${chatId}/meta`), {
         userName: user ? user.name : "Customer",
         userEmail: user ? user.email : "Not provided",
-        lastMessage: "Connected to Live Support",
+        lastMessage: "Requested Live Support",
         lastMessageTime: serverTimestamp(),
         unreadAdmin: true,
         status: "pending",
@@ -221,7 +230,7 @@ export function AIChatWidget() {
         activeMode: "human",
       });
     } catch (err) {
-      console.error("Failed to auto-connect to live support:", err);
+      console.error("Failed to connect to live support:", err);
     }
   };
 
@@ -252,7 +261,7 @@ export function AIChatWidget() {
     setMessages((prev) => [...prev, cancelMsg]);
   };
 
-  // Send message handler (routes to AI or Live Support depending on mode)
+  // Send message handler
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim()) return;
 
@@ -260,9 +269,7 @@ export function AIChatWidget() {
     setMessage("");
     setError(null);
 
-    // ============================================
-    // 1. LIVE SUPPORT MODE -> PUSH TO FIREBASE
-    // ============================================
+    // 1. LIVE SUPPORT MODE
     if (mode === "live" || mode === "connecting") {
       if (!chatId || !database) return;
 
@@ -277,16 +284,13 @@ export function AIChatWidget() {
 
       await set(newMessageRef, msgData);
 
-      // Update chat metadata for admin
       await set(ref(database, `chats/${chatId}/meta/lastMessage`), currentText);
       await set(ref(database, `chats/${chatId}/meta/lastMessageTime`), serverTimestamp());
       await set(ref(database, `chats/${chatId}/meta/unreadAdmin`), true);
       return;
     }
 
-    // ============================================
-    // 2. AI SHOPPING ASSISTANT MODE -> POST TO /api/chat
-    // ============================================
+    // 2. AI SHOPPING ASSISTANT MODE
     if (isTyping) return;
 
     const userMsg: Message = {
@@ -329,7 +333,7 @@ export function AIChatWidget() {
         const updatedList = [...newMessages, aiMsg];
         setMessages(updatedList);
 
-        // If human support is requested, automatically connect to admin immediately!
+        // Connect only if user explicitly asked for live support
         if (data.suggestLiveSupport) {
           autoConnectToAdmin(updatedList);
         }
@@ -402,12 +406,12 @@ export function AIChatWidget() {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 flex h-[650px] max-h-[85vh] w-[390px] max-w-[92vw] flex-col overflow-hidden rounded-[28px] bg-[#F9F9F9] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] ring-1 ring-black/5 animate-slideUp transition-all origin-bottom-right relative">
+        <div className="mb-4 flex h-[620px] max-h-[85vh] w-[390px] max-w-[92vw] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] ring-1 ring-black/10 animate-slideUp transition-all origin-bottom-right">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 px-5 border-b border-black/[0.04] z-20 backdrop-blur-xl bg-white/85 sticky top-0">
+          <div className="flex-shrink-0 flex items-center justify-between p-4 px-5 border-b border-black/[0.06] bg-white">
             <div className="flex items-center gap-3">
               {mode === "live" ? (
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-charcoal-800 to-charcoal-950 text-cream-50 shadow-sm">
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-charcoal-900 text-cream-50 shadow-sm">
                   <Headphones className="h-5 w-5 text-olive-300" />
                   <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white"></div>
                 </div>
@@ -443,12 +447,12 @@ export function AIChatWidget() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {(mode === "live" || mode === "connecting") && (
                 <button
                   type="button"
                   onClick={handleCancelLiveSupport}
-                  className="text-[10px] font-bold text-olive-800 bg-olive-50 hover:bg-olive-100 px-2.5 py-1 rounded-full border border-olive-200 transition-colors"
+                  className="text-[11px] font-bold text-olive-800 bg-olive-50 hover:bg-olive-100 px-3 py-1 rounded-full border border-olive-200 transition-colors"
                   title="Return to AI Assistant"
                 >
                   Return to AI
@@ -457,7 +461,7 @@ export function AIChatWidget() {
 
               <button
                 onClick={() => setIsOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-black/5 text-charcoal-400 hover:text-charcoal-900 transition-all focus:outline-none"
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100 text-charcoal-500 hover:text-charcoal-900 transition-all focus:outline-none"
                 aria-label="Close chat"
               >
                 <X className="h-5 w-5" />
@@ -465,23 +469,25 @@ export function AIChatWidget() {
             </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 relative scroll-smooth bg-gradient-to-b from-transparent to-[#F3F4F6]/50">
+          {/* Messages Scroll Area */}
+          <div
+            ref={messagesContainerRef}
+            className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-gray-50/60 scroll-smooth"
+          >
             {messages.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center text-center space-y-4 px-4 pb-10">
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-[24px] bg-white shadow-xl shadow-olive-900/5 rotate-3 transition-transform hover:rotate-6">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-olive-100/50 to-transparent rounded-[24px]"></div>
-                  <MessageSquare className="h-9 w-9 text-olive-600 relative z-10" />
+              <div className="flex h-full min-h-[300px] flex-col items-center justify-center text-center space-y-4 px-4">
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm border border-olive-100 rotate-3">
+                  <MessageSquare className="h-8 w-8 text-olive-600" />
                 </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-semibold text-lg text-charcoal-900 tracking-tight">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-base text-charcoal-900">
                     Welcome to Cartify!
                   </h4>
                   <p className="text-xs text-charcoal-500 leading-relaxed max-w-[240px] mx-auto">
-                    I&apos;m your AI Shopping Assistant. Ask for recommendations, order tracking, returns, or request support anytime.
+                    I&apos;m your AI Shopping Assistant. Ask me about products, order tracking (/track), returns, or anything else!
                   </p>
                 </div>
-                <div className="flex gap-2 flex-wrap justify-center mt-4">
+                <div className="flex gap-2 flex-wrap justify-center pt-2">
                   <button
                     onClick={() => handleSendMessage("What are your bestsellers?")}
                     className="text-[11px] font-medium bg-white border border-gray-200 text-charcoal-700 px-3 py-1.5 rounded-full hover:border-olive-300 hover:bg-olive-50 transition-colors shadow-2xs"
@@ -489,29 +495,34 @@ export function AIChatWidget() {
                     🔥 Bestsellers
                   </button>
                   <button
-                    onClick={() => handleSendMessage("I want to talk to support")}
+                    onClick={() => handleSendMessage("How do I track my order?")}
+                    className="text-[11px] font-medium bg-white border border-gray-200 text-charcoal-700 px-3 py-1.5 rounded-full hover:border-olive-300 hover:bg-olive-50 transition-colors shadow-2xs"
+                  >
+                    📦 Track Order
+                  </button>
+                  <button
+                    onClick={() => handleSendMessage("I want to talk to live support")}
                     className="text-[11px] font-medium bg-white border border-gray-200 text-charcoal-700 px-3 py-1.5 rounded-full hover:border-olive-300 hover:bg-olive-50 transition-colors shadow-2xs flex items-center gap-1"
                   >
                     <Headphones className="h-3 w-3 text-olive-700" />
-                    <span>Talk to Support</span>
+                    <span>Talk to Human</span>
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-5 pb-24">
+              <div className="space-y-4 pb-2">
                 {messages.map((msg, index) => {
                   const isUser = msg.sender === "user";
                   const isSystem = msg.sender === "system";
                   const isAdmin = msg.sender === "admin";
 
-                  // Render System Announcements
                   if (isSystem) {
                     return (
                       <div
                         key={msg.id || index}
-                        className="my-3 flex items-center justify-center animate-in fade-in"
+                        className="my-3 flex items-center justify-center"
                       >
-                        <div className="flex items-center gap-1.5 rounded-full bg-olive-100/80 px-3.5 py-1 text-[11px] font-semibold text-olive-900 border border-olive-200/60 shadow-2xs text-center max-w-[90%]">
+                        <div className="flex items-center gap-1.5 rounded-full bg-olive-100/90 px-3.5 py-1 text-[11px] font-semibold text-olive-900 border border-olive-200 shadow-2xs text-center max-w-[90%]">
                           <ShieldCheck className="h-3.5 w-3.5 text-olive-700 shrink-0" />
                           <span>{msg.text}</span>
                         </div>
@@ -528,32 +539,31 @@ export function AIChatWidget() {
                   return (
                     <div
                       key={msg.id || index}
-                      className={`flex flex-col ${isUser ? "items-end" : "items-start"} animate-in slide-in-from-bottom-2 duration-300 fade-in`}
+                      className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                     >
                       <div className="flex items-end gap-2 max-w-[88%]">
                         {!isUser && (
                           <div
                             className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center shadow-xs text-white ${
                               isAdmin
-                                ? "bg-gradient-to-br from-charcoal-800 to-charcoal-950 font-bold text-[10px]"
-                                : "bg-gradient-to-br from-olive-700 to-charcoal-800"
+                                ? "bg-charcoal-900 font-bold text-[10px]"
+                                : "bg-olive-800"
                             } ${showAvatar ? "opacity-100" : "opacity-0"}`}
                           >
                             {isAdmin ? "CS" : <Sparkles className="h-3.5 w-3.5 text-olive-200" />}
                           </div>
                         )}
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1">
                           <div
-                            className={`text-[13.5px] leading-relaxed whitespace-pre-wrap ${
+                            className={`text-[13.5px] leading-relaxed break-words whitespace-pre-wrap ${
                               isUser
-                                ? "bg-gradient-to-tr from-charcoal-900 to-[#2A2A2A] text-white rounded-[22px] rounded-br-[6px] px-4.5 py-3 shadow-sm"
+                                ? "bg-charcoal-900 text-white rounded-[20px] rounded-br-[4px] px-4 py-2.5 shadow-xs"
                                 : isAdmin
-                                ? "bg-white border border-olive-200 text-charcoal-900 rounded-[22px] rounded-tl-[6px] px-4.5 py-3 shadow-xs ring-1 ring-olive-700/10"
-                                : "bg-white border border-gray-100 text-charcoal-800 rounded-[22px] rounded-tl-[6px] px-4.5 py-3 shadow-2xs"
+                                ? "bg-white border border-olive-200 text-charcoal-900 rounded-[20px] rounded-tl-[4px] px-4 py-2.5 shadow-2xs ring-1 ring-olive-700/10"
+                                : "bg-white border border-gray-100 text-charcoal-900 rounded-[20px] rounded-tl-[4px] px-4 py-2.5 shadow-2xs"
                             }`}
                           >
-                            {/* Admin Sender Label */}
                             {isAdmin && (
                               <p className="text-[10px] font-bold uppercase tracking-wider text-olive-800 mb-1 flex items-center gap-1">
                                 <Headphones className="h-3 w-3" />
@@ -561,18 +571,16 @@ export function AIChatWidget() {
                               </p>
                             )}
 
-                            {/* Image Attachment */}
                             {msg.imageUrl && (
-                              <div className="my-1.5 rounded-xl overflow-hidden border border-gray-200/50 shadow-sm max-w-[240px]">
+                              <div className="my-1.5 rounded-xl overflow-hidden border border-gray-200 shadow-sm max-w-[220px]">
                                 <img
                                   src={msg.imageUrl}
                                   alt="attachment"
-                                  className="w-full h-auto object-cover max-h-[200px]"
+                                  className="w-full h-auto object-cover max-h-[180px]"
                                 />
                               </div>
                             )}
 
-                            {/* Text with Markdown Image support */}
                             {msg.text &&
                               msg.text.split(/(!\[.*?\]\(.*?\))/g).map((part, i) => {
                                 const match = part.match(/!\[(.*?)\]\((.*?)\)/);
@@ -580,7 +588,7 @@ export function AIChatWidget() {
                                   return (
                                     <div
                                       key={i}
-                                      className="my-2 rounded-xl overflow-hidden border border-gray-200/50 shadow-sm"
+                                      className="my-2 rounded-xl overflow-hidden border border-gray-200 shadow-sm"
                                     >
                                       <img
                                         src={match[2]}
@@ -612,12 +620,12 @@ export function AIChatWidget() {
 
                 {/* AI Typing Indicator */}
                 {isTyping && (
-                  <div className="flex flex-col items-start animate-in fade-in duration-300">
+                  <div className="flex flex-col items-start">
                     <div className="flex items-end gap-2 max-w-[85%]">
-                      <div className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-olive-700 to-charcoal-800 text-white flex items-center justify-center shadow-xs">
+                      <div className="h-7 w-7 shrink-0 rounded-full bg-olive-800 text-white flex items-center justify-center shadow-xs">
                         <Sparkles className="h-3.5 w-3.5 text-olive-200" />
                       </div>
-                      <div className="bg-white border border-gray-100 rounded-[22px] rounded-tl-[6px] px-4 py-3 shadow-xs flex items-center gap-1.5 h-[42px]">
+                      <div className="bg-white border border-gray-100 rounded-[20px] rounded-tl-[4px] px-4 py-3 shadow-xs flex items-center gap-1.5 h-[38px]">
                         <span className="w-1.5 h-1.5 bg-olive-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                         <span className="w-1.5 h-1.5 bg-olive-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                         <span className="w-1.5 h-1.5 bg-olive-500 rounded-full animate-bounce"></span>
@@ -626,9 +634,8 @@ export function AIChatWidget() {
                   </div>
                 )}
 
-                {/* Error Banner */}
                 {error && (
-                  <div className="flex justify-center mt-2 animate-in fade-in">
+                  <div className="flex justify-center mt-2">
                     <div className="text-center text-[11px] font-medium text-red-600 bg-red-50 px-4 py-2 rounded-full border border-red-100 shadow-2xs">
                       {error}
                     </div>
@@ -639,11 +646,11 @@ export function AIChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Floating Input Area */}
-          <div className="absolute bottom-0 left-0 right-0 p-3.5 z-20 before:absolute before:inset-0 before:bg-gradient-to-t before:from-[#F9F9F9] before:via-[#F9F9F9]/95 before:to-transparent before:backdrop-blur-md before:-z-10">
+          {/* Sticky Input Area */}
+          <div className="flex-shrink-0 bg-white border-t border-gray-100 p-3 relative">
             {showEmoji && (
-              <div className="absolute bottom-[80px] left-4 shadow-2xl z-50 rounded-[24px] overflow-hidden border border-black/5">
-                <EmojiPicker onEmojiClick={onEmojiClick} width={300} height={340} />
+              <div className="absolute bottom-[70px] left-3 shadow-2xl z-50 rounded-2xl overflow-hidden border border-black/5">
+                <EmojiPicker onEmojiClick={onEmojiClick} width={280} height={320} />
               </div>
             )}
 
@@ -657,16 +664,15 @@ export function AIChatWidget() {
 
             <form
               onSubmit={handleSend}
-              className="relative flex items-center bg-white border border-gray-200/80 rounded-full p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.06)] focus-within:ring-2 focus-within:ring-olive-500/20 focus-within:border-olive-300 transition-all"
+              className="flex items-center bg-gray-50 border border-gray-200 rounded-full p-1 focus-within:ring-2 focus-within:ring-olive-500/20 focus-within:border-olive-300 focus-within:bg-white transition-all"
             >
-              {/* Image attachment button (enabled in Live Support mode) */}
               {mode === "live" && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:text-olive-700 hover:bg-olive-50 transition-colors ml-1 disabled:opacity-50"
-                  title="Upload proof or product image"
+                  title="Upload image"
                 >
                   <Paperclip className="h-4 w-4" />
                 </button>
@@ -705,38 +711,38 @@ export function AIChatWidget() {
                       ? "Uploading image..."
                       : "Message support agent..."
                     : mode === "connecting"
-                    ? "Leave a message for the agent..."
-                    : "Ask AI or say 'Talk to support'..."
+                    ? "Leave a message for agent..."
+                    : "Ask anything or say 'Talk to support'..."
                 }
                 disabled={isTyping || isUploading}
-                className="flex-1 bg-transparent px-3 py-2 text-[13.5px] text-charcoal-900 placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                className="flex-1 bg-transparent px-3 py-1.5 text-[13px] text-charcoal-900 placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
               />
 
               <button
                 type="submit"
                 disabled={!message.trim() || isTyping || isUploading}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-olive-700 to-charcoal-900 text-white transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98] disabled:scale-100 disabled:opacity-40 shrink-0 ml-1"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-olive-800 text-white transition-all hover:bg-olive-900 active:scale-95 disabled:opacity-40 shrink-0 mr-1"
                 aria-label="Send message"
               >
-                <Send className="h-4 w-4 ml-0.5" />
+                <Send className="h-3.5 w-3.5 ml-0.5" />
               </button>
             </form>
 
-            <div className="mt-2 text-center flex items-center justify-center gap-2">
-              <span className="text-[10px] text-gray-400 font-medium">
+            <div className="mt-1.5 text-center flex items-center justify-center gap-1.5">
+              <span className="text-[10px] text-gray-400">
                 {mode === "live"
-                  ? "Connected with Cartify Support Team"
+                  ? "Live Support Active"
                   : mode === "connecting"
-                  ? "Waiting for support agent"
-                  : "AI Shopping Assistant • Powered by Gemini"}
+                  ? "Waiting for agent..."
+                  : "Cartify AI Shopping Assistant"}
               </span>
               {mode === "ai" && (
                 <button
                   type="button"
-                  onClick={() => handleSendMessage("Connect me with support")}
+                  onClick={() => handleSendMessage("Connect me with live support")}
                   className="text-[10px] text-olive-700 hover:text-olive-900 font-bold underline"
                 >
-                  Need human help?
+                  &bull; Need human help?
                 </button>
               )}
             </div>
@@ -757,7 +763,6 @@ export function AIChatWidget() {
             <Sparkles className="h-6 w-6 text-cream-50" />
           )}
 
-          {/* Online status indicator */}
           <span className="absolute top-0.5 right-0.5 flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white"></span>
