@@ -73,9 +73,9 @@ export function Hero() {
             </div>
 
             <h1 className="font-display text-5xl font-semibold leading-[1.1] text-charcoal-900 sm:text-6xl md:text-7xl tracking-tighter">
-              Premium products <br className="hidden sm:block" />
+              Premium Home, Tech <br className="hidden sm:block" />
               <span className="italic text-olive-800 font-light pr-3">
-                and honest prices always.
+                &amp; Lifestyle Goods at Honest Prices.
               </span>
             </h1>
 

@@ -1,9 +1,40 @@
 import React from "react";
 import { Leaf, ShieldCheck, HeartHandshake, PackageOpen } from "lucide-react";
 
-export const metadata = {
-  title: "About Us | Cartify",
-  description: "Learn more about Cartify, our mission, and our core values.",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Our Craft & Philosophy",
+  description:
+    "Learn about Cartify's commitment to sustainable craftsmanship, ethical partnerships, and transparent pricing on every product.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About Our Craft & Philosophy | Cartify",
+    description:
+      "Learn about Cartify's commitment to sustainable craftsmanship, ethical partnerships, and transparent pricing.",
+    url: "/about",
+    type: "website",
+    siteName: "Cartify",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1200&auto=format&fit=crop",
+        width: 1200,
+        height: 630,
+        alt: "Cartify Artisanal Craftsmanship",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Our Craft & Philosophy | Cartify",
+    description:
+      "Learn about Cartify's commitment to sustainable craftsmanship, ethical partnerships, and transparent pricing.",
+    images: [
+      "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=1200&auto=format&fit=crop",
+    ],
+  },
 };
 
 export default function AboutPage() {

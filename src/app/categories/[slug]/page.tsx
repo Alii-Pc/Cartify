@@ -1,158 +1,167 @@
-"use client";
+import React from "react";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { connectDB } from "@/lib/db";
+import { Category } from "@/models/Category";
+import { Product } from "@/models/Product";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { CategoryDetailsClient } from "@/components/categories/CategoryDetailsClient";
+import type { SafeCategory, SafeProduct } from "@/types";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { ProductGrid } from "@/components/products/ProductGrid";
-import { ProductSort } from "@/components/products/ProductSort";
-import { ProductSkeleton } from "@/components/products/ProductSkeleton";
-import { ActiveFilterChips } from "@/components/products/ActiveFilterChips";
-import { ChevronRight, ArrowLeft } from "lucide-react";
-import type { SafeProduct, SafeCategory } from "@/types";
+interface CategoryPageProps {
+  params: { slug: string };
+}
 
-export default function CategoryDetailsPage() {
-  const params = useParams();
-  const slug = params?.slug as string;
-  const router = useRouter();
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://cartify.com";
 
-  const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<SafeProduct[]>([]);
-  const [category, setCategory] = useState<SafeCategory | null>(null);
-  const [sortParam, setSortParam] = useState("newest");
-  const [gridCols, setGridCols] = useState<2 | 3 | 4>(4);
+async function getCategoryData(slug: string) {
+  try {
+    await connectDB();
+    const cleanSlug = slug.toLowerCase();
+    const categoryDb = await Category.findOne({ slug: cleanSlug }).lean();
 
-  useEffect(() => {
-    const saved = localStorage.getItem("cartify_grid_cols");
-    if (saved) {
-      const parsed = parseInt(saved, 10);
-      if (parsed === 2 || parsed === 3 || parsed === 4) {
-        setGridCols(parsed as 2 | 3 | 4);
-      }
+    if (!categoryDb) {
+      return null;
     }
-  }, []);
 
-  const handleGridColsChange = (cols: 2 | 3 | 4) => {
-    setGridCols(cols);
-    localStorage.setItem("cartify_grid_cols", cols.toString());
+    const productsDb = await Product.find({ category: cleanSlug })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    const formattedCategory: SafeCategory = {
+      _id: categoryDb._id.toString(),
+      name: categoryDb.name,
+      slug: categoryDb.slug,
+      emoji: categoryDb.emoji,
+      description: categoryDb.description,
+    };
+
+    const formattedProducts: SafeProduct[] = productsDb.map((p) => ({
+      _id: p._id.toString(),
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      price: p.price,
+      compareAtPrice: p.compareAtPrice,
+      category: p.category,
+      images: p.images,
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      stock: p.stock,
+      featured: p.featured,
+      tag: p.tag,
+      specifications: p.specifications,
+      createdAt: p.createdAt?.toISOString() || new Date().toISOString(),
+      updatedAt: p.updatedAt?.toISOString() || new Date().toISOString(),
+    }));
+
+    return {
+      category: formattedCategory,
+      products: formattedProducts,
+    };
+  } catch (error) {
+    console.error("Error fetching category server data:", error);
+    return null;
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: CategoryPageProps): Promise<Metadata> {
+  const data = await getCategoryData(params.slug);
+
+  if (!data || !data.category) {
+    const formattedName = params.slug.replace("-", " ");
+    return {
+      title: `${formattedName.charAt(0).toUpperCase() + formattedName.slice(1)} | Cartify`,
+      description: `Explore our curated selection of ${formattedName} products at Cartify.`,
+    };
+  }
+
+  const { category } = data;
+  const pageTitle = `${category.name} Collection | Cartify`;
+  const pageDescription =
+    category.description?.length > 155
+      ? `${category.description.slice(0, 152)}...`
+      : category.description ||
+        `Shop high-quality ${category.name} products at Cartify. Honest prices and free shipping over $50.`;
+  const canonicalUrl = `/categories/${category.slug}`;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: pageTitle,
+      description: pageDescription,
+      url: canonicalUrl,
+      type: "website",
+      siteName: "Cartify",
+      images: [
+        {
+          url: "/images/products/table_lamp.jpg",
+          width: 1200,
+          height: 630,
+          alt: category.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: pageTitle,
+      description: pageDescription,
+      images: ["/images/products/table_lamp.jpg"],
+    },
+  };
+}
+
+export default async function CategoryDetailsPage({
+  params,
+}: CategoryPageProps) {
+  const data = await getCategoryData(params.slug);
+
+  if (!data || !data.category) {
+    notFound();
+  }
+
+  const { category, products } = data;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Categories",
+        item: `${siteUrl}/categories`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: category.name,
+        item: `${siteUrl}/categories/${category.slug}`,
+      },
+    ],
   };
 
-  useEffect(() => {
-    if (!slug) return;
-
-    async function fetchCategoryProducts() {
-      setLoading(true);
-      try {
-        // Fetch categories to find our category info
-        const catRes = await fetch("/api/categories");
-        const catJson = await catRes.json();
-        if (catJson.success && catJson.data) {
-          const matched = catJson.data.find(
-            (c: SafeCategory) => c.slug.toLowerCase() === slug.toLowerCase()
-          );
-          if (matched) {
-            setCategory(matched);
-          }
-        }
-
-        // Fetch filtered products
-        const prodRes = await fetch(`/api/products?category=${slug}&sort=${sortParam}&limit=50`);
-        const prodJson = await prodRes.json();
-        if (prodJson.success && prodJson.data) {
-          setProducts(prodJson.data.products || []);
-        }
-      } catch (err) {
-        console.error("Error fetching category products:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCategoryProducts();
-  }, [slug, sortParam]);
-
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-      {/* Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs font-medium text-charcoal-700/60">
-        <Link href="/" className="hover:text-olive-800">
-          Home
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <Link href="/categories" className="hover:text-olive-800">
-          Categories
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-charcoal-900 font-semibold capitalize">
-          {category?.name || slug.replace("-", " ")}
-        </span>
-      </nav>
-
-      {/* Category Header Banner */}
-      <div className="mb-12 rounded-3xl bg-cream-100/80 border border-olive-100 p-6 sm:p-12">
-        <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-6 text-center sm:text-left">
-          <div className="flex flex-col sm:flex-row items-center gap-5">
-            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-4xl shadow-xs shrink-0">
-              {category?.emoji || "🏷️"}
-            </span>
-            <div>
-              <h1 className="font-display text-3xl font-bold text-charcoal-900 sm:text-4xl capitalize">
-                {category?.name || slug.replace("-", " ")}
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-charcoal-700/80 leading-relaxed">
-                {category?.description ||
-                  `Explore our full lineup of curated products inside the ${slug.replace("-", " ")} category.`}
-              </p>
-            </div>
-          </div>
-
-          <Link
-            href="/products"
-            className="flex items-center gap-2 rounded-full border border-olive-200 bg-white px-5 py-2.5 text-xs font-semibold text-charcoal-800 transition-colors hover:bg-cream-50 shrink-0"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>All Products</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Controls & Grid */}
-      <ProductSort
-        total={products.length}
-        page={1}
-        limit={products.length || 1}
-        currentSort={sortParam}
-        onSortChange={(sort) => setSortParam(sort)}
-        onToggleMobileFilters={() => router.push(`/products?category=${slug}`)}
-        activeFilterCount={1}
-        gridCols={gridCols}
-        onGridColsChange={handleGridColsChange}
+    <>
+      <JsonLd data={breadcrumbSchema} />
+      <CategoryDetailsClient
+        slug={params.slug}
+        initialCategory={category}
+        initialProducts={products}
       />
-
-      <div className="mt-5">
-        <ActiveFilterChips
-          selectedCategory={slug}
-          categories={category ? [category] : []}
-          minPrice=""
-          maxPrice=""
-          selectedTag=""
-          inStock={false}
-          searchQuery=""
-          onRemoveFilter={() => router.push("/products")}
-          onClearAll={() => router.push("/products")}
-        />
-      </div>
-
-      <div className="mt-5">
-        {loading ? (
-          <ProductSkeleton count={8} gridCols={gridCols} />
-        ) : (
-          <ProductGrid
-            products={products}
-            onResetFilters={() => router.push("/products")}
-            gridCols={gridCols}
-          />
-        )}
-      </div>
-    </div>
+    </>
   );
 }
