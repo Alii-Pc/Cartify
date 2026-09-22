@@ -51,7 +51,7 @@ export function FeaturedProducts() {
   const formatDigits = (num: number) => num.toString().padStart(2, "0");
 
   return (
-    <section id="deals" className="relative overflow-hidden bg-cream-100/70 px-6 py-28 lg:px-8 border-y border-olive-100/60">
+    <section id="deals" className="relative overflow-hidden bg-cream-100/70 px-4 py-8 sm:px-6 sm:py-12 lg:px-8 border-y border-olive-100/60">
       {/* Decorative gradient glow */}
       <div className="pointer-events-none absolute -left-40 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-olive-200/30 blur-3xl" />
       <div className="pointer-events-none absolute -right-40 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-amber-100/40 blur-3xl" />

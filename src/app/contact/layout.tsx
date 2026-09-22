@@ -1,34 +1,25 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact Us & FAQ",
+  title: "Contact Us & Customer Support",
   description:
-    "Have questions about your order, shipping, or returns? Reach out to Cartify support or explore our frequently asked questions.",
+    "Get in touch with Cartify's dedicated customer support. Inquire about orders, returns, wholesale partnerships, and craftsmanship.",
   alternates: {
     canonical: "/contact",
   },
   openGraph: {
-    title: "Contact Us & FAQ | Cartify",
+    title: "Contact Us & Customer Support | Cartify",
     description:
-      "Have questions about your order, shipping, or returns? Reach out to Cartify support or explore our frequently asked questions.",
+      "Get in touch with Cartify's dedicated customer support. Inquire about orders, returns, wholesale partnerships, and craftsmanship.",
     url: "/contact",
     type: "website",
     siteName: "Cartify",
-    images: [
-      {
-        url: "/images/products/table_lamp.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Contact Cartify Support",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact Us & FAQ | Cartify",
+    title: "Contact Us & Customer Support | Cartify",
     description:
-      "Have questions about your order, shipping, or returns? Reach out to Cartify support.",
-    images: ["/images/products/table_lamp.jpg"],
+      "Get in touch with Cartify's dedicated customer support. Fast responses within 24 hours.",
   },
 };
 

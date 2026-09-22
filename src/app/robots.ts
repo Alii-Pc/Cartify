@@ -7,7 +7,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: [
+          "/",
+          "/products",
+          "/products/*",
+          "/categories",
+          "/categories/*",
+          "/about",
+          "/contact",
+          "/track",
+          "/images/*",
+        ],
         disallow: [
           "/admin",
           "/admin/*",
@@ -21,9 +31,48 @@ export default function robots(): MetadataRoute.Robots {
           "/reset-password",
           "/verify-email",
           "/forgot-password",
+          "/login",
+          "/signup",
+        ],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: [
+          "/",
+          "/products",
+          "/products/*",
+          "/categories",
+          "/categories/*",
+          "/images/*",
+        ],
+        disallow: [
+          "/admin/*",
+          "/api/*",
+          "/checkout/*",
+          "/orders/*",
+          "/cart",
+        ],
+      },
+      {
+        userAgent: "Bingbot",
+        allow: [
+          "/",
+          "/products",
+          "/products/*",
+          "/categories",
+          "/categories/*",
+          "/images/*",
+        ],
+        disallow: [
+          "/admin/*",
+          "/api/*",
+          "/checkout/*",
+          "/orders/*",
+          "/cart",
         ],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }

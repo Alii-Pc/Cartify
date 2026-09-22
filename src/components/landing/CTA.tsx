@@ -39,7 +39,7 @@ export function CTA() {
   };
 
   return (
-    <section id="newsletter" className="relative w-full px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+    <section id="newsletter" className="relative w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] relative shadow-2xl">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">

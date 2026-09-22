@@ -228,7 +228,7 @@ export function Bestsellers() {
       : products.filter((p) => p.category.toLowerCase().includes(activeCategory));
 
   return (
-    <section id="bestsellers" className="relative px-6 py-20 lg:px-8 bg-cream-100/50 border-t border-olive-100/60">
+    <section id="bestsellers" className="relative px-4 py-8 sm:px-6 sm:py-12 lg:px-8 bg-cream-100/50 border-t border-olive-100/60">
       <div className="mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-olive-200/60">
